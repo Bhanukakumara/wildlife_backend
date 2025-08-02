@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: wildlife_backend
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/wildlife?createDatabaseIfNotExist=true
+    username: root
+    password: 1234
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
