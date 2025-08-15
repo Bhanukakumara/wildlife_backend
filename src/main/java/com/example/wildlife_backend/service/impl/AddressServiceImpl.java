@@ -11,6 +11,7 @@ import com.example.wildlife_backend.service.AddressService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -60,5 +61,60 @@ public class AddressServiceImpl implements AddressService {
         userAddressRepository.save(userAddress);
 
         return address;
+    }
+
+    @Override
+    public Optional<Address> getAddressById(Long addressId) {
+        if (addressId == null) {
+            throw new IllegalArgumentException("addressId cannot be null");
+        }
+        return addressRepository.findById(addressId);
+    }
+
+    @Override
+    public List<Address> getAllAddresses() {
+        return addressRepository.findAll();
+    }
+
+    @Override
+    public Optional<Address> updateAddress(Long addressId, AddressCreateDto addressCreateDto) {
+        if (addressId == null) {
+            throw new IllegalArgumentException("addressId cannot be null");
+        }
+        if (addressCreateDto == null) {
+            throw new IllegalArgumentException("addressCreateDto cannot be null");
+        }
+
+        Optional<Address> existingAddressOpt = addressRepository.findById(addressId);
+        if (existingAddressOpt.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Address existingAddress = existingAddressOpt.get();
+        // Update fields
+        existingAddress.setUnitNumber(addressCreateDto.getUnitNumber());
+        existingAddress.setStreetNumber(addressCreateDto.getStreetNumber());
+        existingAddress.setAddressLine1(addressCreateDto.getAddressLine1());
+        existingAddress.setAddressLine2(addressCreateDto.getAddressLine2());
+        existingAddress.setCity(addressCreateDto.getCity());
+        existingAddress.setStateProvince(addressCreateDto.getStateProvince());
+        existingAddress.setPostalCode(addressCreateDto.getPostalCode());
+        existingAddress.setAddressType(addressCreateDto.getAddressType());
+        existingAddress.setDeliveryInstructions(addressCreateDto.getDeliveryInstructions());
+        existingAddress.setCountry(addressCreateDto.getCountry());
+
+        Address updatedAddress = addressRepository.save(existingAddress);
+        return Optional.of(updatedAddress);
+    }
+
+    @Override
+    public void deleteAddress(Long addressId) {
+        if (addressId == null) {
+            throw new IllegalArgumentException("addressId cannot be null");
+        }
+        
+        // Also delete associated UserAddress records
+        userAddressRepository.deleteByAddressId(addressId);
+        addressRepository.deleteById(addressId);
     }
 }
