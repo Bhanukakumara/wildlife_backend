@@ -2,9 +2,7 @@ package com.example.wildlife_backend.service;
 
 import com.example.wildlife_backend.dto.UserCreateDto;
 import com.example.wildlife_backend.dto.UserGetDto;
-import com.example.wildlife_backend.util.UserRole;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
