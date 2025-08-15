@@ -7,14 +7,12 @@ import com.example.wildlife_backend.exception.ResourceNotFoundException;
 import com.example.wildlife_backend.exception.DuplicateResourceException;
 import com.example.wildlife_backend.repository.UserRepository;
 import com.example.wildlife_backend.service.UserService;
-import com.example.wildlife_backend.util.UserStatus;
-import com.example.wildlife_backend.util.UserType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -25,7 +23,7 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-//    private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -33,10 +31,9 @@ public class UserServiceImpl implements UserService {
         validateUserCreation(userCreateDto);
 
         User user = convertCreateDtoToUser(userCreateDto);
-//        user.setPassword(passwordEncoder.encode(user.getPassword()));
         User savedUser = userRepository.save(user);
 
-        log.info("Created new user with ID: {}", savedUser.getUserId());
+        log.info("Created new user with ID: {}", savedUser.getId());
         return convertUserToGetDto(savedUser);
     }
 
@@ -45,7 +42,7 @@ public class UserServiceImpl implements UserService {
     public Optional<UserGetDto> getUserById(Long userId) {
         return Optional.ofNullable(userRepository.findById(userId)
                 .map(this::convertUserToGetDto)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId)));
+                .orElseThrow(() -> new ResourceNotFoundException("found with id: " + userId)));
     }
 
     @Override
@@ -60,25 +57,19 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public List<UserGetDto> getAllUsers() {
         List<User> all = userRepository.findAll();
-        if (!all.isEmpty()) {
-            return all.stream().map(this::convertUserToGetDto).collect(Collectors.toList());
-        }
-        throw new ResourceNotFoundException("Users not found");
+        return all.stream().map(this::convertUserToGetDto).collect(Collectors.toList());
     }
 
     @Override
     @Transactional
-    public boolean updateUser(Long userId, UserCreateDto userDetails) {
+    public Optional<UserGetDto> updateUser(Long userId, UserCreateDto userDetails) {
         User existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-        if (!(existingUser == null)){
-            validateUserUpdate(existingUser, userDetails);
-            updateUserFromDto(existingUser, userDetails);
-            userRepository.save(existingUser);
-            log.info("Updated user with ID: {}", userId);
-            return true;
-        }
-        throw new ResourceNotFoundException("User not found with id: " + userId);
+        validateUserUpdate(existingUser, userDetails);
+        updateUserFromDto(existingUser, userDetails);
+        User updatedUser = userRepository.save(existingUser);
+        log.info("Updated user with ID: {}", userId);
+        return Optional.of(convertUserToGetDto(updatedUser));
     }
 
     @Override
@@ -86,73 +77,28 @@ public class UserServiceImpl implements UserService {
     public boolean deleteUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-        if (!(user == null)){
-            userRepository.delete(user);
-            log.info("Deleted user with ID: {}", userId);
-            return true;
-        }
-        throw new ResourceNotFoundException("User not found with id: " + userId);
+        userRepository.delete(user);
+        log.info("Deleted user with ID: {}", userId);
+        return true;
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<UserGetDto> findUsersByStatus(UserStatus status) {
-        List<User> byUserStatus = userRepository.findByUserStatus(status);
-        if (!byUserStatus.isEmpty()) {
-            return byUserStatus.stream().map(this::convertUserToGetDto).collect(Collectors.toList());
-        }
-        throw new ResourceNotFoundException("Users not found");
-    }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<UserGetDto> findUsersByType(UserType userType) {
-        List<User> byUserType = userRepository.findByUserType(userType);
-        if (!byUserType.isEmpty()) {
-            return byUserType.stream().map(this::convertUserToGetDto).collect(Collectors.toList());
-        }
-        throw new ResourceNotFoundException("Users not found");
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<UserGetDto> searchUsersByName(String name, String lastName) {
-        List<User> byFirstNameContainingOrLastNameContainingIgnoreCase = userRepository.findByFirstNameContainingOrLastNameContainingIgnoreCase(name,lastName);
-        if (!byFirstNameContainingOrLastNameContainingIgnoreCase.isEmpty()) {
-            return byFirstNameContainingOrLastNameContainingIgnoreCase.stream().map(this::convertUserToGetDto).collect(Collectors.toList());
-        }
-        throw new ResourceNotFoundException("Users not found");
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<UserGetDto> findUsersByDateOfBirthRange(LocalDate startDate, LocalDate endDate) {
-        List<User> byDateOfBirthBetween = userRepository.findByDateOfBirthBetween(startDate, endDate);
-        if (!byDateOfBirthBetween.isEmpty()) {
-            return byDateOfBirthBetween.stream().map(this::convertUserToGetDto).collect(Collectors.toList());
-        }
-        throw new ResourceNotFoundException("Users not found");
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public boolean isEmailUnique(String email) {
-        return !userRepository.existsByEmail(email);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public boolean isPhoneUnique(String phone) {
-        return !userRepository.existsByPhone(phone);
-    }
 
     private void validateUserCreation(UserCreateDto userCreateDto) {
         if (userRepository.existsByEmail(userCreateDto.getEmail())) {
             throw new DuplicateResourceException("Email already in use: " + userCreateDto.getEmail());
         }
 
-        if (userRepository.existsByPhone(userCreateDto.getPhone())) {
-            throw new DuplicateResourceException("Phone number already in use: " + userCreateDto.getPhone());
+        if (userRepository.existsByPhoneNumber(userCreateDto.getPhoneNumber())) {
+            throw new DuplicateResourceException("Phone number already in use: " + userCreateDto.getPhoneNumber());
+        }
+        
+        // Validate displayName
+        if (userCreateDto.getDisplayName() == null || userCreateDto.getDisplayName().trim().isEmpty()) {
+            // Generate display name from first name and last name if not provided
+            String firstName = userCreateDto.getFirstName() != null ? userCreateDto.getFirstName().trim() : "";
+            String lastName = userCreateDto.getLastName() != null ? userCreateDto.getLastName().trim() : "";
+            userCreateDto.setDisplayName(firstName + " " + lastName);
         }
     }
 
@@ -162,49 +108,72 @@ public class UserServiceImpl implements UserService {
             throw new DuplicateResourceException("Email already in use: " + userDetails.getEmail());
         }
 
-        if (!existingUser.getPhone().equals(userDetails.getPhone()) &&
-                userRepository.existsByPhone(userDetails.getPhone())) {
-            throw new DuplicateResourceException("Phone number already in use: " + userDetails.getPhone());
+        if (!existingUser.getPhoneNumber().equals(userDetails.getPhoneNumber()) &&
+                userRepository.existsByPhoneNumber(userDetails.getPhoneNumber())) {
+            throw new DuplicateResourceException("Phone number already in use: " + userDetails.getPhoneNumber());
+        }
+        
+        // Validate displayName
+        if (userDetails.getDisplayName() == null || userDetails.getDisplayName().trim().isEmpty()) {
+            // Generate display name from first name and last name if not provided
+            String firstName = userDetails.getFirstName() != null ? userDetails.getFirstName().trim() : "";
+            String lastName = userDetails.getLastName() != null ? userDetails.getLastName().trim() : "";
+            userDetails.setDisplayName(firstName + " " + lastName);
         }
     }
 
     private User convertCreateDtoToUser(UserCreateDto userCreateDto) {
         return User.builder()
                 .email(userCreateDto.getEmail())
-                .password(userCreateDto.getPassword())
                 .firstName(userCreateDto.getFirstName())
+                .middleName(userCreateDto.getMiddleName())
                 .lastName(userCreateDto.getLastName())
-                .phone(userCreateDto.getPhone())
+                .displayName(userCreateDto.getDisplayName())
+                .profilePicture(userCreateDto.getProfilePicture())
+                .password(passwordEncoder.encode(userCreateDto.getPassword()))
+                .phoneNumber(userCreateDto.getPhoneNumber())
                 .dateOfBirth(userCreateDto.getDateOfBirth())
-                .userType(userCreateDto.getUserType())
-                .userStatus(userCreateDto.getUserStatus())
+                .gender(userCreateDto.getGender())
+                .role(userCreateDto.getRole())
+                .accountStatus(userCreateDto.getAccountStatus())
                 .build();
     }
 
     private UserGetDto convertUserToGetDto(User user) {
         return UserGetDto.builder()
-                .userId(user.getUserId())
+                .id(user.getId()) // Corrected field name
                 .email(user.getEmail())
                 .firstName(user.getFirstName())
+                .middleName(user.getMiddleName())
                 .lastName(user.getLastName())
-                .phone(user.getPhone())
+                .displayName(user.getDisplayName())
+                .profilePicture(user.getProfilePicture())
+                .password(user.getPassword())
+                .phoneNumber(user.getPhoneNumber())
                 .dateOfBirth(user.getDateOfBirth())
-                .userType(user.getUserType())
-                .userStatus(user.getUserStatus())
+                .gender(user.getGender())
+                .role(user.getRole())
+                .accountStatus(user.getAccountStatus())
+                .createdDate(user.getCreatedAt())
+                .updatedDate(user.getUpdatedAt())
+                .deletedDate(user.getDeletedAt())
                 .build();
     }
 
     private void updateUserFromDto(User user, UserCreateDto dto) {
         user.setEmail(dto.getEmail());
         if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
-//            user.setPassword(passwordEncoder.encode(dto.getPassword()));
-            user.setPassword(dto.getPassword());
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
         user.setFirstName(dto.getFirstName());
+        user.setMiddleName(dto.getMiddleName());
         user.setLastName(dto.getLastName());
-        user.setPhone(dto.getPhone());
+        user.setDisplayName(dto.getDisplayName());
+        user.setProfilePicture(dto.getProfilePicture());
+        user.setPhoneNumber(dto.getPhoneNumber());
         user.setDateOfBirth(dto.getDateOfBirth());
-        user.setUserType(dto.getUserType());
-        user.setUserStatus(dto.getUserStatus());
+        user.setGender(dto.getGender());
+        user.setRole(dto.getRole());
+        user.setAccountStatus(dto.getAccountStatus());
     }
 }

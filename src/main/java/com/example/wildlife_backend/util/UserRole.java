@@ -1,5 +1,5 @@
 package com.example.wildlife_backend.util;
 
-public enum UserType {
+public enum UserRole {
     ADMIN, CUSTOMER, PHOTOGRAPHER
 }

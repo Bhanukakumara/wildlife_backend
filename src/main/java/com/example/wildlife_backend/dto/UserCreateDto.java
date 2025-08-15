@@ -1,7 +1,8 @@
 package com.example.wildlife_backend.dto;
 
-import com.example.wildlife_backend.util.UserStatus;
-import com.example.wildlife_backend.util.UserType;
+import com.example.wildlife_backend.util.AccountStatus;
+import com.example.wildlife_backend.util.Gender;
+import com.example.wildlife_backend.util.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,11 +16,15 @@ import java.time.LocalDate;
 @Builder
 public class UserCreateDto {
     private String email;
-    private String password;
     private String firstName;
+    private String middleName;
     private String lastName;
-    private String phone;
+    private String displayName;
+    private String profilePicture;
+    private String password;
+    private String phoneNumber;
     private LocalDate dateOfBirth;
-    private UserType userType;
-    private UserStatus userStatus;
+    private Gender gender;
+    private UserRole role;
+    private AccountStatus accountStatus;
 }

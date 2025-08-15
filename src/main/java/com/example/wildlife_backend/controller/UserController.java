@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api/user/")
 @CrossOrigin
 @RequiredArgsConstructor
 public class UserController {
@@ -53,11 +53,9 @@ public class UserController {
     // Update user details
     @PutMapping("/update/{userId}")
     public ResponseEntity<UserGetDto> updateUser(@PathVariable Long userId, @RequestBody UserCreateDto userCreateDto) {
-        boolean updateUser = userService.updateUser(userId, userCreateDto);
-        if (updateUser) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        Optional<UserGetDto> updatedUser = userService.updateUser(userId, userCreateDto);
+        return updatedUser.map(userGetDto -> new ResponseEntity<>(userGetDto, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     // Delete user
