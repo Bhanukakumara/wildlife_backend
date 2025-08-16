@@ -1,6 +1,6 @@
 package com.example.wildlife_backend.controller;
 
-import com.example.wildlife_backend.dto.AddressCreateDto;
+import com.example.wildlife_backend.dto.Address.AddressCreateDto;
 import com.example.wildlife_backend.entity.Address;
 import com.example.wildlife_backend.service.AddressService;
 import lombok.RequiredArgsConstructor;

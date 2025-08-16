@@ -1,7 +1,7 @@
 package com.example.wildlife_backend.service;
 
-import com.example.wildlife_backend.dto.UserCreateDto;
-import com.example.wildlife_backend.dto.UserGetDto;
+import com.example.wildlife_backend.dto.user.UserCreateDto;
+import com.example.wildlife_backend.dto.user.UserGetDto;
 
 import java.util.List;
 import java.util.Optional;

@@ -1,6 +1,6 @@
 package com.example.wildlife_backend.service;
 
-import com.example.wildlife_backend.dto.AddressCreateDto;
+import com.example.wildlife_backend.dto.Address.AddressCreateDto;
 import com.example.wildlife_backend.entity.Address;
 
 import java.util.List;

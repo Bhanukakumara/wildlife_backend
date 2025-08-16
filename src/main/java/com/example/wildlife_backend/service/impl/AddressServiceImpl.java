@@ -1,6 +1,6 @@
 package com.example.wildlife_backend.service.impl;
 
-import com.example.wildlife_backend.dto.AddressCreateDto;
+import com.example.wildlife_backend.dto.Address.AddressCreateDto;
 import com.example.wildlife_backend.entity.Address;
 import com.example.wildlife_backend.entity.User;
 import com.example.wildlife_backend.entity.UserAddress;

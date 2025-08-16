@@ -1,7 +1,7 @@
 package com.example.wildlife_backend.service;
 
-import com.example.wildlife_backend.dto.ProductCategoryCreateDto;
-import com.example.wildlife_backend.dto.ProductCategoryGetDto;
+import com.example.wildlife_backend.dto.Product.ProductCategoryCreateDto;
+import com.example.wildlife_backend.dto.Product.ProductCategoryGetDto;
 
 import java.util.List;
 import java.util.Optional;

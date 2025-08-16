@@ -1,8 +1,8 @@
 package com.example.wildlife_backend.service.impl;
 
-import com.example.wildlife_backend.dto.ShoppingCartGetDto;
-import com.example.wildlife_backend.dto.ShoppingCartItemCreateDto;
-import com.example.wildlife_backend.dto.ShoppingCartItemGetDto;
+import com.example.wildlife_backend.dto.ShoppingCart.ShoppingCartGetDto;
+import com.example.wildlife_backend.dto.ShoppingCart.ShoppingCartItemCreateDto;
+import com.example.wildlife_backend.dto.ShoppingCart.ShoppingCartItemGetDto;
 import com.example.wildlife_backend.entity.ProductItem;
 import com.example.wildlife_backend.entity.ShoppingCart;
 import com.example.wildlife_backend.entity.ShoppingCartItem;

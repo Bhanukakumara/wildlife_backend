@@ -1,7 +1,7 @@
 package com.example.wildlife_backend.controller;
 
-import com.example.wildlife_backend.dto.ProductItemCreateDto;
-import com.example.wildlife_backend.dto.ProductItemGetDto;
+import com.example.wildlife_backend.dto.Product.ProductItemCreateDto;
+import com.example.wildlife_backend.dto.Product.ProductItemGetDto;
 import com.example.wildlife_backend.service.ProductItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

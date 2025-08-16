@@ -1,9 +1,9 @@
 package com.example.wildlife_backend.service.impl;
 
-import com.example.wildlife_backend.dto.ProductCreateDto;
-import com.example.wildlife_backend.dto.ProductGetDto;
-import com.example.wildlife_backend.dto.ProductCategoryGetDto;
-import com.example.wildlife_backend.dto.ProductItemGetDto;
+import com.example.wildlife_backend.dto.Product.ProductCreateDto;
+import com.example.wildlife_backend.dto.Product.ProductGetDto;
+import com.example.wildlife_backend.dto.Product.ProductCategoryGetDto;
+import com.example.wildlife_backend.dto.Product.ProductItemGetDto;
 import com.example.wildlife_backend.entity.Product;
 import com.example.wildlife_backend.entity.ProductCategory;
 import com.example.wildlife_backend.exception.DuplicateResourceException;

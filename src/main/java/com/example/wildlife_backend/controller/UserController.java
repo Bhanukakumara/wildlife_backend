@@ -1,7 +1,7 @@
 package com.example.wildlife_backend.controller;
 
-import com.example.wildlife_backend.dto.UserCreateDto;
-import com.example.wildlife_backend.dto.UserGetDto;
+import com.example.wildlife_backend.dto.user.UserCreateDto;
+import com.example.wildlife_backend.dto.user.UserGetDto;
 import com.example.wildlife_backend.service.UserService;
 import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/user/")
+@RequestMapping("/api/user")
 @CrossOrigin
 @RequiredArgsConstructor
 public class UserController {
@@ -21,7 +21,7 @@ public class UserController {
     private final UserService userService;
 
     // Create a new user
-    @PostMapping("create")
+    @PostMapping("/create")
     public ResponseEntity<UserGetDto> createUser(@RequestBody UserCreateDto userCreateDto) {
         return new ResponseEntity<>(userService.createUser(userCreateDto), HttpStatus.CREATED);
     }

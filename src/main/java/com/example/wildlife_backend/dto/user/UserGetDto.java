@@ -1,4 +1,4 @@
-package com.example.wildlife_backend.dto;
+package com.example.wildlife_backend.dto.user;
 
 import com.example.wildlife_backend.util.AccountStatus;
 import com.example.wildlife_backend.util.Gender;

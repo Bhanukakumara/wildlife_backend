@@ -1,7 +1,7 @@
 package com.example.wildlife_backend.service;
 
-import com.example.wildlife_backend.dto.ProductItemCreateDto;
-import com.example.wildlife_backend.dto.ProductItemGetDto;
+import com.example.wildlife_backend.dto.Product.ProductItemCreateDto;
+import com.example.wildlife_backend.dto.Product.ProductItemGetDto;
 
 import java.math.BigDecimal;
 import java.util.List;

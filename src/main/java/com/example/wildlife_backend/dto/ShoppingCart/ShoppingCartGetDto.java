@@ -1,4 +1,4 @@
-package com.example.wildlife_backend.dto;
+package com.example.wildlife_backend.dto.ShoppingCart;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

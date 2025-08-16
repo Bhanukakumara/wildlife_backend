@@ -1,4 +1,4 @@
-package com.example.wildlife_backend.dto;
+package com.example.wildlife_backend.dto.ShoppingCart;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;

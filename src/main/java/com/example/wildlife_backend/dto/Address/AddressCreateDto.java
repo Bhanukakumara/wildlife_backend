@@ -1,4 +1,4 @@
-package com.example.wildlife_backend.dto;
+package com.example.wildlife_backend.dto.Address;
 
 import com.example.wildlife_backend.entity.Country;
 import com.example.wildlife_backend.util.AddressType;

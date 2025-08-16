@@ -1,7 +1,7 @@
 package com.example.wildlife_backend.controller;
 
-import com.example.wildlife_backend.dto.ShoppingCartGetDto;
-import com.example.wildlife_backend.dto.ShoppingCartItemCreateDto;
+import com.example.wildlife_backend.dto.ShoppingCart.ShoppingCartGetDto;
+import com.example.wildlife_backend.dto.ShoppingCart.ShoppingCartItemCreateDto;
 import com.example.wildlife_backend.service.ShoppingCartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

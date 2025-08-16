@@ -12,6 +12,6 @@ spring:
       ddl-auto: update
     show-sql: true
 
-  security:
-    user:
-      name: root
+  jwt:
+    secret: 0e3d419499e931ca750c178a45750227174f87934fdfa205625cdac1948855b3
+    tokenExpiration: 86400
