@@ -20,7 +20,8 @@ public class JwtService {
     public String generateToken(UserGetDto userGetDto) {
         return Jwts.builder()
                 .subject(userGetDto.getEmail())
-                .claim("role", userGetDto.getRole())
+                .claim("roles", userGetDto.getRole())
+                .claim("name", userGetDto.getDisplayName())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 1000 * tokenExpiration))
                 .signWith(Keys.hmacShaKeyFor(secret.getBytes()))
@@ -50,6 +51,6 @@ public class JwtService {
     }
 
     public UserRole getRoleFromToken(String token) {
-        return UserRole.valueOf(getClaims(token).get("role", String.class));
+        return UserRole.valueOf(getClaims(token).get("roles", String.class));
     }
 }

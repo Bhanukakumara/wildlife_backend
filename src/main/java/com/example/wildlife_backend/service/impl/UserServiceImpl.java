@@ -2,6 +2,8 @@ package com.example.wildlife_backend.service.impl;
 
 import com.example.wildlife_backend.dto.user.UserCreateDto;
 import com.example.wildlife_backend.dto.user.UserGetDto;
+import com.example.wildlife_backend.dto.user.UserSearchDto;
+import com.example.wildlife_backend.dto.user.UserUpdatePasswordDto;
 import com.example.wildlife_backend.entity.User;
 import com.example.wildlife_backend.exception.ResourceNotFoundException;
 import com.example.wildlife_backend.exception.DuplicateResourceException;
@@ -9,10 +11,14 @@ import com.example.wildlife_backend.repository.UserRepository;
 import com.example.wildlife_backend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -59,6 +65,13 @@ public class UserServiceImpl implements UserService {
         List<User> all = userRepository.findAll();
         return all.stream().map(this::convertUserToGetDto).collect(Collectors.toList());
     }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<UserGetDto> getAllUsers(Pageable pageable) {
+        Page<User> users = userRepository.findAll(pageable);
+        return users.map(this::convertUserToGetDto);
+    }
 
     @Override
     @Transactional
@@ -71,6 +84,86 @@ public class UserServiceImpl implements UserService {
         log.info("Updated user with ID: {}", userId);
         return Optional.of(convertUserToGetDto(updatedUser));
     }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<UserGetDto> searchUsers(UserSearchDto searchDto, Pageable pageable) {
+        Page<User> users = userRepository.searchUsers(
+            searchDto.getEmail(),
+            searchDto.getFirstName(),
+            searchDto.getLastName(),
+            searchDto.getPhoneNumber(),
+            searchDto.getDateOfBirth(),
+            searchDto.getGender(),
+            searchDto.getRole(),
+            searchDto.getAccountStatus(),
+            pageable
+        );
+        return users.map(this::convertUserToGetDto);
+    }
+    
+    @Override
+    @Transactional
+    public Optional<UserGetDto> partialUpdateUser(Long userId, UserCreateDto userDetails) {
+        User existingUser = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+        
+        // Only update fields that are provided in the DTO
+        if (userDetails.getEmail() != null && !userDetails.getEmail().isEmpty()) {
+            validateUserUpdate(existingUser, userDetails);
+            existingUser.setEmail(userDetails.getEmail());
+        }
+        
+        if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
+            existingUser.setPassword(passwordEncoder.encode(userDetails.getPassword()));
+        }
+        
+        if (userDetails.getFirstName() != null) {
+            existingUser.setFirstName(userDetails.getFirstName());
+        }
+        
+        if (userDetails.getMiddleName() != null) {
+            existingUser.setMiddleName(userDetails.getMiddleName());
+        }
+        
+        if (userDetails.getLastName() != null) {
+            existingUser.setLastName(userDetails.getLastName());
+        }
+        
+        if (userDetails.getDisplayName() != null) {
+            existingUser.setDisplayName(userDetails.getDisplayName());
+        }
+        
+        if (userDetails.getProfilePicture() != null) {
+            existingUser.setProfilePicture(userDetails.getProfilePicture());
+        }
+        
+        if (userDetails.getPhoneNumber() != null && !userDetails.getPhoneNumber().isEmpty()) {
+            existingUser.setPhoneNumber(userDetails.getPhoneNumber());
+        }
+        
+        if (userDetails.getDateOfBirth() != null) {
+            existingUser.setDateOfBirth(userDetails.getDateOfBirth());
+        }
+        
+        if (userDetails.getGender() != null) {
+            existingUser.setGender(userDetails.getGender());
+        }
+        
+        if (userDetails.getRole() != null) {
+            existingUser.setRole(userDetails.getRole());
+        }
+        
+        if (userDetails.getAccountStatus() != null) {
+            existingUser.setAccountStatus(userDetails.getAccountStatus());
+        }
+        
+        User updatedUser = userRepository.save(existingUser);
+        log.info("Partially updated user with ID: {}", userId);
+        return Optional.of(convertUserToGetDto(updatedUser));
+    }
+
+
 
     @Override
     @Transactional
@@ -100,7 +193,80 @@ public class UserServiceImpl implements UserService {
             String lastName = userCreateDto.getLastName() != null ? userCreateDto.getLastName().trim() : "";
             userCreateDto.setDisplayName(firstName + " " + lastName);
         }
+    
     }
+   
+   @Override
+   @Transactional
+   public boolean updatePassword(Long userId, UserUpdatePasswordDto passwordDto) {
+       User user = userRepository.findById(userId)
+               .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+       
+       // Check if the old password is correct
+       if (!passwordEncoder.matches(passwordDto.getOldPassword(), user.getPassword())) {
+           throw new IllegalArgumentException("Old password is incorrect");
+       }
+       
+       // Update the password
+       user.setPassword(passwordEncoder.encode(passwordDto.getNewPassword()));
+       userRepository.save(user);
+       log.info("Updated password for user with ID: {}", userId);
+       return true;
+   }
+   
+   @Override
+   @Transactional
+   public Optional<UserGetDto> toggleUserStatus(Long userId) {
+       User user = userRepository.findById(userId)
+               .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+       
+       // Toggle the account status
+       if (user.getAccountStatus() == com.example.wildlife_backend.util.AccountStatus.ACTIVE) {
+           user.setAccountStatus(com.example.wildlife_backend.util.AccountStatus.SUSPENDED);
+       } else {
+           user.setAccountStatus(com.example.wildlife_backend.util.AccountStatus.ACTIVE);
+       }
+       User updatedUser = userRepository.save(user);
+       log.info("Toggled account status for user with ID: {}", userId);
+       return Optional.of(convertUserToGetDto(updatedUser));
+   }
+   
+   @Override
+   @Transactional
+   public boolean requestPasswordReset(String email) {
+       User user = userRepository.findByEmail(email)
+               .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+       
+       // In a real application, you would send an email with a reset token
+       // For now, we'll just log that the request was made
+       log.info("Password reset requested for user with email: {}", email);
+       return true;
+   }
+   
+   
+   @Override
+   @Transactional
+   public Optional<UserGetDto> uploadProfilePicture(Long userId, MultipartFile file) {
+       User user = userRepository.findById(userId)
+               .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+       
+       // For now, we'll just save the original filename as the profile picture
+       // In a real application, you would save the file to a storage service and save the URL
+       user.setProfilePicture(file.getOriginalFilename());
+       User updatedUser = userRepository.save(user);
+       log.info("Uploaded profile picture for user with ID: {}", userId);
+       return Optional.of(convertUserToGetDto(updatedUser));
+   }
+   
+   @Override
+   @Transactional
+   public boolean resetPassword(String token, UserUpdatePasswordDto passwordDto) {
+       // In a real application, you would validate the token and find the user associated with it
+       // For now, we'll just log that the reset was requested
+       log.info("Password reset requested with token: {}", token);
+       return true;
+   }
+   
 
     private void validateUserUpdate(User existingUser, UserCreateDto userDetails) {
         if (!existingUser.getEmail().equals(userDetails.getEmail()) &&
