@@ -31,4 +31,15 @@ public class CountryController {
     public ResponseEntity<List<Country>> getAllCountry() {
         return new ResponseEntity<>(countryService.getCoutryList(), HttpStatus.OK);
     }
+
+    @PutMapping("update/{id}")
+    public ResponseEntity<Country> updateCountry(@PathVariable Long id, @RequestBody Country country) {
+        return new ResponseEntity<>(countryService.updateCountry(id, country), HttpStatus.OK);
+    }
+
+    @DeleteMapping("delete/{id}")
+    public ResponseEntity<Void> deleteCountry(@PathVariable Long id) {
+        countryService.deleteCountry(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }
