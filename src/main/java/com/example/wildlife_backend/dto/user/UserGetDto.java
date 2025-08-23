@@ -1,5 +1,7 @@
 package com.example.wildlife_backend.dto.user;
 
+import com.example.wildlife_backend.dto.Address.AddressGetDto;
+import com.example.wildlife_backend.entity.Address;
 import com.example.wildlife_backend.util.AccountStatus;
 import com.example.wildlife_backend.util.Gender;
 import com.example.wildlife_backend.util.UserRole;
@@ -9,6 +11,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -31,4 +35,5 @@ public class UserGetDto {
     private LocalDate createdDate;
     private LocalDate updatedDate;
     private LocalDate deletedDate;
+    private Set<AddressGetDto> addresses;
 }

@@ -1,9 +1,11 @@
 package com.example.wildlife_backend.service.impl;
 
+import com.example.wildlife_backend.dto.Address.AddressGetDto;
 import com.example.wildlife_backend.dto.user.UserCreateDto;
 import com.example.wildlife_backend.dto.user.UserGetDto;
 import com.example.wildlife_backend.dto.user.UserSearchDto;
 import com.example.wildlife_backend.dto.user.UserUpdatePasswordDto;
+import com.example.wildlife_backend.entity.Address;
 import com.example.wildlife_backend.entity.User;
 import com.example.wildlife_backend.exception.ResourceNotFoundException;
 import com.example.wildlife_backend.exception.DuplicateResourceException;
@@ -18,9 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -234,7 +234,7 @@ public class UserServiceImpl implements UserService {
    @Override
    @Transactional
    public boolean requestPasswordReset(String email) {
-       User user = userRepository.findByEmail(email)
+       userRepository.findByEmail(email)
                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
        
        // In a real application, you would send an email with a reset token
@@ -306,6 +306,12 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserGetDto convertUserToGetDto(User user) {
+        Set<AddressGetDto> addressGetDos = new HashSet<>();
+
+        user.getUserAddresses().forEach(userAddress -> {
+            Address address = userAddress.getAddress();
+            addressGetDos.add(convertAddressToGetDto(address));
+        });
         return UserGetDto.builder()
                 .id(user.getId()) // Corrected field name
                 .email(user.getEmail())
@@ -323,6 +329,7 @@ public class UserServiceImpl implements UserService {
                 .createdDate(user.getCreatedAt())
                 .updatedDate(user.getUpdatedAt())
                 .deletedDate(user.getDeletedAt())
+                .addresses(addressGetDos)
                 .build();
     }
 
@@ -341,5 +348,21 @@ public class UserServiceImpl implements UserService {
         user.setGender(dto.getGender());
         user.setRole(dto.getRole());
         user.setAccountStatus(dto.getAccountStatus());
+    }
+
+    private AddressGetDto convertAddressToGetDto(Address address) {
+        return AddressGetDto.builder()
+                .id(address.getId())
+                .unitNumber(address.getUnitNumber())
+                .streetNumber(address.getStreetNumber())
+                .addressLine1(address.getAddressLine1())
+                .addressLine2(address.getAddressLine2())
+                .city(address.getCity())
+                .stateProvince(address.getStateProvince())
+                .postalCode(address.getPostalCode())
+                .addressType(address.getAddressType())
+                .deliveryInstructions(address.getDeliveryInstructions())
+                .country(address.getCountry().getName())
+                .build();
     }
 }

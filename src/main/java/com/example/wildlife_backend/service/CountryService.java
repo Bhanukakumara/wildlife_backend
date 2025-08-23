@@ -10,4 +10,5 @@ public interface CountryService {
     List<Country> getCoutryList();
     Country updateCountry(Country country);
     void deleteCountry(Long id);
+    Country updateCountry(Long id, Country countryDetails);
 }

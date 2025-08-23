@@ -1,6 +1,7 @@
 package com.example.wildlife_backend.service.impl;
 
 import com.example.wildlife_backend.dto.Address.AddressCreateDto;
+import com.example.wildlife_backend.dto.Address.AddressGetDto;
 import com.example.wildlife_backend.entity.Address;
 import com.example.wildlife_backend.entity.User;
 import com.example.wildlife_backend.entity.UserAddress;
@@ -11,6 +12,7 @@ import com.example.wildlife_backend.service.AddressService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,7 +24,7 @@ public class AddressServiceImpl implements AddressService {
     private final UserAddressRepository userAddressRepository;
 
     @Override
-    public Address createAddress(AddressCreateDto addressCreateDto, Long userId) {
+    public AddressGetDto createAddress(AddressCreateDto addressCreateDto, Long userId) {
         if (addressCreateDto == null) {
             throw new IllegalArgumentException("addressCreateDto cannot be null");
         }
@@ -30,8 +32,8 @@ public class AddressServiceImpl implements AddressService {
             throw new IllegalArgumentException("userId cannot be null");
         }
 
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty()) {
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
             throw new IllegalArgumentException("User with ID " + userId + " not found");
         }
 
@@ -52,32 +54,39 @@ public class AddressServiceImpl implements AddressService {
         // Save Address
         Address savedAddress = addressRepository.save(address);
 
-        // Create and save UserAddress with the saved Address
+        // Create and save UserAddress
         UserAddress userAddress = UserAddress.builder()
-                .user(user.get())
+                .user(userOpt.get())
                 .address(savedAddress)
                 .isDefault(addressCreateDto.isDefault())
                 .build();
         userAddressRepository.save(userAddress);
 
-        return address;
+        return convertAddressToDto(savedAddress);
     }
 
     @Override
-    public Optional<Address> getAddressById(Long addressId) {
+    public Optional<AddressGetDto> getAddressById(Long addressId) {
         if (addressId == null) {
             throw new IllegalArgumentException("addressId cannot be null");
         }
-        return addressRepository.findById(addressId);
+        Optional<Address> addressOpt = addressRepository.findById(addressId);
+        if (addressOpt.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(convertAddressToDto(addressOpt.get()));
     }
 
     @Override
-    public List<Address> getAllAddresses() {
-        return addressRepository.findAll();
+    public List<AddressGetDto> getAllAddresses() {
+        List<Address> addressList = addressRepository.findAll();
+        List<AddressGetDto> addressGetDtoList = new ArrayList<>();
+        addressList.forEach(address -> addressGetDtoList.add(convertAddressToDto(address)));
+        return addressGetDtoList;
     }
 
     @Override
-    public Optional<Address> updateAddress(Long addressId, AddressCreateDto addressCreateDto) {
+    public Optional<AddressGetDto> updateAddress(Long addressId, AddressCreateDto addressCreateDto) {
         if (addressId == null) {
             throw new IllegalArgumentException("addressId cannot be null");
         }
@@ -91,7 +100,6 @@ public class AddressServiceImpl implements AddressService {
         }
 
         Address existingAddress = existingAddressOpt.get();
-        // Update fields
         existingAddress.setUnitNumber(addressCreateDto.getUnitNumber());
         existingAddress.setStreetNumber(addressCreateDto.getStreetNumber());
         existingAddress.setAddressLine1(addressCreateDto.getAddressLine1());
@@ -104,7 +112,7 @@ public class AddressServiceImpl implements AddressService {
         existingAddress.setCountry(addressCreateDto.getCountry());
 
         Address updatedAddress = addressRepository.save(existingAddress);
-        return Optional.of(updatedAddress);
+        return Optional.of(convertAddressToDto(updatedAddress));
     }
 
     @Override
@@ -112,9 +120,24 @@ public class AddressServiceImpl implements AddressService {
         if (addressId == null) {
             throw new IllegalArgumentException("addressId cannot be null");
         }
-        
-        // Also delete associated UserAddress records
+
         userAddressRepository.deleteByAddressId(addressId);
         addressRepository.deleteById(addressId);
+    }
+
+    private AddressGetDto convertAddressToDto(Address address) {
+        return AddressGetDto.builder()
+                .id(address.getId())
+                .unitNumber(address.getUnitNumber())
+                .streetNumber(address.getStreetNumber())
+                .addressLine1(address.getAddressLine1())
+                .addressLine2(address.getAddressLine2())
+                .city(address.getCity())
+                .stateProvince(address.getStateProvince())
+                .postalCode(address.getPostalCode())
+                .addressType(address.getAddressType())
+                .deliveryInstructions(address.getDeliveryInstructions())
+                .country(address.getCountry().getName())
+                .build();
     }
 }

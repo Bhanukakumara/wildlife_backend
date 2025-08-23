@@ -76,4 +76,9 @@ public class CountryServiceImpl implements CountryService {
 
         countryRepository.delete(country);
     }
+
+    @Override
+    public Country updateCountry(Country country) {
+        throw new UnsupportedOperationException("Unimplemented method 'updateCountry'");
+    }
 }
