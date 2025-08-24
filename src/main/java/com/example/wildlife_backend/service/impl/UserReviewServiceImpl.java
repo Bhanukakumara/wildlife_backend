@@ -90,11 +90,41 @@ public class UserReviewServiceImpl implements UserReviewService {
     }
 
     @Override
-    public void deleteUserReview(Long userReviewId) {
-        if (!userReviewRepository.existsById(userReviewId)) {
-            throw new ResourceNotFoundException("UserReview not found with id: " + userReviewId);
+    public boolean deleteUserReview(Long userReviewId) {
+        if (userReviewRepository.existsById(userReviewId)) {
+            userReviewRepository.deleteById(userReviewId);
         }
-        userReviewRepository.deleteById(userReviewId);
+        return true;
+    }
+
+    @Override
+    public List<UserReviewGetDto> getUserReviewsByUserId(Long userId) {
+        return List.of();
+    }
+
+    @Override
+    public List<UserReviewGetDto> getUserReviewsByOrderLineId(Long orderLineId) {
+        return List.of();
+    }
+
+    @Override
+    public List<UserReviewGetDto> getUserReviewsByRatingRange(Integer minRating, Integer maxRating) {
+        return List.of();
+    }
+
+    @Override
+    public List<UserReviewGetDto> bulkCreateUserReviews(List<UserReviewCreateDto> userReviewCreateDtos) {
+        return List.of();
+    }
+
+    @Override
+    public boolean validateUserReview(UserReviewCreateDto userReviewCreateDto) {
+        return false;
+    }
+
+    @Override
+    public List<UserReviewGetDto> getUserReviewsWithOrderDetails() {
+        return List.of();
     }
 
     private UserReviewGetDto convertToGetDto(UserReview userReview) {

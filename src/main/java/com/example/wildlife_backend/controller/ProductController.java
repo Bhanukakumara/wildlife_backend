@@ -22,7 +22,7 @@ public class ProductController {
     private final ProductService productService;
 
     // Create a new product
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<ProductGetDto> createProduct(@RequestBody ProductCreateDto productCreateDto) {
         return new ResponseEntity<>(productService.createProduct(productCreateDto), HttpStatus.CREATED);
     }

@@ -11,5 +11,11 @@ public interface PromotionService {
     Optional<PromotionGetDto> getPromotionById(Long promotionId);
     List<PromotionGetDto> getAllPromotions();
     Optional<PromotionGetDto> updatePromotion(Long promotionId, PromotionCreateDto promotionCreateDto);
-    void deletePromotion(Long promotionId);
+    boolean deletePromotion(Long promotionId);
+
+    List<PromotionGetDto> getActivePromotions();
+
+    List<PromotionGetDto> searchPromotionsByName(String name);
+
+    List<PromotionGetDto> getPromotionsByCategoryId(Long categoryId);
 }

@@ -10,7 +10,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 public class ShoppingCartItemCreateDto {
-    private Long shoppingCartId;
     private Long productItemId;
     private int quantity;
 }

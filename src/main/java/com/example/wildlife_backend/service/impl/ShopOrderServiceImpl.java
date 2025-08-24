@@ -12,9 +12,11 @@ import com.example.wildlife_backend.repository.ShippingMethodRepository;
 import com.example.wildlife_backend.repository.ShopOrderRepository;
 import com.example.wildlife_backend.repository.UserPaymentMethodRepository;
 import com.example.wildlife_backend.service.ShopOrderService;
+import com.example.wildlife_backend.util.OrderStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -108,11 +110,51 @@ public class ShopOrderServiceImpl implements ShopOrderService {
     }
 
     @Override
-    public void deleteShopOrder(Long shopOrderId) {
-        if (!shopOrderRepository.existsById(shopOrderId)) {
-            throw new ResourceNotFoundException("ShopOrder not found with id: " + shopOrderId);
+    public boolean deleteShopOrder(Long shopOrderId) {
+        if (shopOrderRepository.findById(shopOrderId).isPresent()) {
+            shopOrderRepository.deleteById(shopOrderId);
         }
-        shopOrderRepository.deleteById(shopOrderId);
+        return true;
+    }
+
+    @Override
+    public List<ShopOrderGetDto> getShopOrdersByPaymentMethodId(Long paymentMethodId) {
+        return List.of();
+    }
+
+    @Override
+    public List<ShopOrderGetDto> getShopOrdersByAddressId(Long addressId) {
+        return List.of();
+    }
+
+    @Override
+    public List<ShopOrderGetDto> getShopOrdersByShippingMethodId(Long shippingMethodId) {
+        return List.of();
+    }
+
+    @Override
+    public List<ShopOrderGetDto> getShopOrdersByStatus(OrderStatus status) {
+        return List.of();
+    }
+
+    @Override
+    public List<ShopOrderGetDto> getShopOrdersByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        return List.of();
+    }
+
+    @Override
+    public List<ShopOrderGetDto> bulkCreateShopOrders(List<ShopOrderCreateDto> shopOrderCreateDtos) {
+        return List.of();
+    }
+
+    @Override
+    public boolean validateShopOrder(ShopOrderCreateDto shopOrderCreateDto) {
+        return false;
+    }
+
+    @Override
+    public List<ShopOrderGetDto> getShopOrdersWithOrderLines() {
+        return List.of();
     }
 
     private ShopOrderGetDto convertToGetDto(ShopOrder shopOrder) {

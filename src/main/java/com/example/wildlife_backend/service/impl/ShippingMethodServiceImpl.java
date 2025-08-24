@@ -9,6 +9,7 @@ import com.example.wildlife_backend.service.ShippingMethodService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -55,11 +56,36 @@ public class ShippingMethodServiceImpl implements ShippingMethodService {
     }
 
     @Override
-    public void deleteShippingMethod(Long shippingMethodId) {
-        if (!shippingMethodRepository.existsById(shippingMethodId)) {
-            throw new ResourceNotFoundException("ShippingMethod not found with id: " + shippingMethodId);
+    public boolean deleteShippingMethod(Long shippingMethodId) {
+        if (shippingMethodRepository.existsById(shippingMethodId)) {
+            shippingMethodRepository.deleteById(shippingMethodId);
         }
-        shippingMethodRepository.deleteById(shippingMethodId);
+        return shippingMethodRepository.existsById(shippingMethodId);
+    }
+
+    @Override
+    public List<ShippingMethodGetDto> searchShippingMethodsByName(String name) {
+        return List.of();
+    }
+
+    @Override
+    public List<ShippingMethodGetDto> getShippingMethodsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
+        return List.of();
+    }
+
+    @Override
+    public List<ShippingMethodGetDto> bulkCreateShippingMethods(List<ShippingMethodCreateDto> shippingMethodCreateDtos) {
+        return List.of();
+    }
+
+    @Override
+    public boolean validateShippingMethod(ShippingMethodCreateDto shippingMethodCreateDto) {
+        return false;
+    }
+
+    @Override
+    public List<ShippingMethodGetDto> getShippingMethodsWithShopOrders() {
+        return List.of();
     }
 
     private ShippingMethodGetDto convertToGetDto(ShippingMethod shippingMethod) {

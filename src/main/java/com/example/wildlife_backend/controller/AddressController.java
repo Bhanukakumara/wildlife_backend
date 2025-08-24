@@ -2,8 +2,8 @@ package com.example.wildlife_backend.controller;
 
 import com.example.wildlife_backend.dto.Address.AddressCreateDto;
 import com.example.wildlife_backend.dto.Address.AddressGetDto;
-import com.example.wildlife_backend.entity.Address;
 import com.example.wildlife_backend.service.AddressService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,16 +19,44 @@ import java.util.Optional;
 public class AddressController {
     private final AddressService addressService;
 
-    @PostMapping("create/{userId}")
-    public ResponseEntity<AddressGetDto> createAddress(@RequestBody AddressCreateDto addressCreateDto, @PathVariable Long userId) {
-        return new ResponseEntity<>(addressService.createAddress(addressCreateDto, userId), HttpStatus.CREATED);
+    //Create a new Address for a User
+    @PostMapping("/create/{userId}")
+    public ResponseEntity<AddressGetDto> createAddress(@PathVariable Long userId, @RequestBody AddressCreateDto addressCreateDto){
+        AddressGetDto addressGetDto = addressService.createAddress(addressCreateDto, userId);
+        if (addressGetDto == null) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        else {
+            return new ResponseEntity<>(addressGetDto, HttpStatus.CREATED);
+        }
     }
 
     // Get address by ID
     @GetMapping("/get-by-id/{addressId}")
     public ResponseEntity<AddressGetDto> getAddressById(@PathVariable Long addressId) {
         Optional<AddressGetDto> addressById = addressService.getAddressById(addressId);
-        return addressById.map(addressGetDto -> new ResponseEntity<>(addressGetDto, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        return addressById.map(addressGetDto -> new ResponseEntity<>(addressGetDto, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    // Get all addresses for a specific user
+    @GetMapping("/get-by-user/{userId}")
+    public ResponseEntity<List<AddressGetDto>> getAddressesByUserId(@PathVariable Long userId) {
+        List<AddressGetDto> userAddresses = addressService.getAddressesByUserId(userId);
+        if (userAddresses.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(userAddresses, HttpStatus.OK);
+    }
+
+    // Get addresses by address type (e.g., billing or shipping)
+    @GetMapping("/get-by-type/{addressType}")
+    public ResponseEntity<List<AddressGetDto>> getAddressesByType(@PathVariable String addressType) {
+        List<AddressGetDto> addressesByType = addressService.getAddressesByType(addressType);
+        if (addressesByType.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(addressesByType, HttpStatus.OK);
     }
 
     // Get all addresses
@@ -41,18 +69,33 @@ public class AddressController {
         return new ResponseEntity<>(allAddresses, HttpStatus.OK);
     }
 
-    // Update address
+    // Update an existing address
     @PutMapping("/update/{addressId}")
-    public ResponseEntity<AddressGetDto> updateAddress(@PathVariable Long addressId, @RequestBody AddressCreateDto addressCreateDto) {
+    public ResponseEntity<AddressGetDto> updateAddress(
+            @PathVariable Long addressId,
+            @Valid @RequestBody AddressCreateDto addressCreateDto) {
         Optional<AddressGetDto> updatedAddress = addressService.updateAddress(addressId, addressCreateDto);
         return updatedAddress.map(address -> new ResponseEntity<>(address, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    // Delete address
-    @DeleteMapping("/delete/{addressId}")
-    public ResponseEntity<Void> deleteAddress(@PathVariable Long addressId) {
-        addressService.deleteAddress(addressId);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    // Associate an address with a shop order
+    @PostMapping("/associate-order/{addressId}/{orderId}")
+    public ResponseEntity<AddressGetDto> associateAddressWithOrder(
+            @PathVariable Long addressId,
+            @PathVariable Long orderId) {
+        Optional<AddressGetDto> associatedAddress = addressService.associateAddressWithOrder(addressId, orderId);
+        return associatedAddress.map(address -> new ResponseEntity<>(address, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    // Validate address data
+    @PostMapping("/validate")
+    public ResponseEntity<String> validateAddress(@Valid @RequestBody AddressCreateDto addressCreateDto) {
+        boolean isValid = addressService.validateAddress(addressCreateDto);
+        if (isValid) {
+            return new ResponseEntity<>("Address is valid", HttpStatus.OK);
+        }
+        return new ResponseEntity<>("Invalid address data", HttpStatus.BAD_REQUEST);
     }
 }

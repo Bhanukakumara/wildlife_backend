@@ -71,10 +71,7 @@ public class AddressServiceImpl implements AddressService {
             throw new IllegalArgumentException("addressId cannot be null");
         }
         Optional<Address> addressOpt = addressRepository.findById(addressId);
-        if (addressOpt.isEmpty()) {
-            return Optional.empty();
-        }
-        return Optional.of(convertAddressToDto(addressOpt.get()));
+        return addressOpt.map(this::convertAddressToDto);
     }
 
     @Override
@@ -99,6 +96,13 @@ public class AddressServiceImpl implements AddressService {
             return Optional.empty();
         }
 
+        Address existingAddress = getAddress(addressCreateDto, existingAddressOpt);
+
+        Address updatedAddress = addressRepository.save(existingAddress);
+        return Optional.of(convertAddressToDto(updatedAddress));
+    }
+
+    private static Address getAddress(AddressCreateDto addressCreateDto, Optional<Address> existingAddressOpt) {
         Address existingAddress = existingAddressOpt.get();
         existingAddress.setUnitNumber(addressCreateDto.getUnitNumber());
         existingAddress.setStreetNumber(addressCreateDto.getStreetNumber());
@@ -110,9 +114,7 @@ public class AddressServiceImpl implements AddressService {
         existingAddress.setAddressType(addressCreateDto.getAddressType());
         existingAddress.setDeliveryInstructions(addressCreateDto.getDeliveryInstructions());
         existingAddress.setCountry(addressCreateDto.getCountry());
-
-        Address updatedAddress = addressRepository.save(existingAddress);
-        return Optional.of(convertAddressToDto(updatedAddress));
+        return existingAddress;
     }
 
     @Override
@@ -123,6 +125,26 @@ public class AddressServiceImpl implements AddressService {
 
         userAddressRepository.deleteByAddressId(addressId);
         addressRepository.deleteById(addressId);
+    }
+
+    @Override
+    public List<AddressGetDto> getAddressesByUserId(Long userId) {
+        return List.of();
+    }
+
+    @Override
+    public List<AddressGetDto> getAddressesByType(String addressType) {
+        return List.of();
+    }
+
+    @Override
+    public Optional<AddressGetDto> associateAddressWithOrder(Long addressId, Long orderId) {
+        return Optional.empty();
+    }
+
+    @Override
+    public boolean validateAddress(AddressCreateDto addressCreateDto) {
+        return false;
     }
 
     private AddressGetDto convertAddressToDto(Address address) {

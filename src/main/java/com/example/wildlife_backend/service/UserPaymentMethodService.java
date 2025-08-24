@@ -12,4 +12,10 @@ public interface UserPaymentMethodService {
     List<UserPaymentMethodGetDto> getAllUserPaymentMethods();
     Optional<UserPaymentMethodGetDto> updateUserPaymentMethod(Long userPaymentMethodId, UserPaymentMethodCreateDto userPaymentMethodCreateDto);
     void deleteUserPaymentMethod(Long userPaymentMethodId);
+
+    Optional<UserPaymentMethodGetDto> setDefaultPaymentMethod(Long userPaymentMethodId);
+
+    boolean validatePaymentMethod(Long userPaymentMethodId);
+
+    List<ShopOrderDto> getOrderHistoryByPaymentMethod(Long userPaymentMethodId);
 }

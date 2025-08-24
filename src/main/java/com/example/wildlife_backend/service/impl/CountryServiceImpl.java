@@ -1,5 +1,7 @@
 package com.example.wildlife_backend.service.impl;
 
+import com.example.wildlife_backend.dto.Country.CountryCreateDto;
+import com.example.wildlife_backend.dto.Country.CountryGetDto;
 import com.example.wildlife_backend.entity.Country;
 import com.example.wildlife_backend.repository.CountryRepository;
 import com.example.wildlife_backend.service.CountryService;
@@ -10,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -19,17 +22,8 @@ public class CountryServiceImpl implements CountryService {
     private final CountryRepository countryRepository;
 
     @Override
-    public Country createCountry(Country country) {
-        // Validate input
-        if (country == null || country.getName() == null || country.getName().trim().isEmpty()) {
-            throw new IllegalArgumentException("Country name cannot be null or empty");
-        }
-        // Check if country already exists
-        if (countryRepository.existsByName(country.getName())) {
-            throw new EntityExistsException("Country with name '" + country.getName() + "' already exists");
-        }
-        // Save and return the country
-        return countryRepository.save(country);
+    public CountryGetDto createCountry(CountryCreateDto countryCreateDto) {
+        return null;
     }
 
     @Override
@@ -67,6 +61,41 @@ public class CountryServiceImpl implements CountryService {
 
         country.setName(countryDetails.getName());
         return countryRepository.save(country);
+    }
+
+    @Override
+    public List<CountryGetDto> createCountryList(List<CountryCreateDto> countryCreateDtos) {
+        return List.of();
+    }
+
+    @Override
+    public List<CountryGetDto> getCountryList() {
+        return List.of();
+    }
+
+    @Override
+    public Optional<CountryGetDto> getCountryById(Long id) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<CountryGetDto> getCountryByCode(String countryCode) {
+        return Optional.empty();
+    }
+
+    @Override
+    public List<CountryGetDto> searchCountriesByName(String name) {
+        return List.of();
+    }
+
+    @Override
+    public boolean validateCountry(CountryCreateDto countryCreateDto) {
+        return false;
+    }
+
+    @Override
+    public List<CountryGetDto> getCountriesWithAddresses() {
+        return List.of();
     }
 
     @Override

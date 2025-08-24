@@ -73,11 +73,38 @@ public class OrderLineServiceImpl implements OrderLineService {
     }
 
     @Override
-    public void deleteOrderLine(Long orderLineId) {
+    public boolean deleteOrderLine(Long orderLineId) {
         if (!orderLineRepository.existsById(orderLineId)) {
             throw new ResourceNotFoundException("OrderLine not found with id: " + orderLineId);
+        } else {
+            orderLineRepository.deleteById(orderLineId);
+            return true;
         }
-        orderLineRepository.deleteById(orderLineId);
+    }
+
+    @Override
+    public List<OrderLineGetDto> getOrderLinesByOrderId(Long orderId) {
+        return List.of();
+    }
+
+    @Override
+    public List<OrderLineGetDto> getOrderLinesByProductItemId(Long productItemId) {
+        return List.of();
+    }
+
+    @Override
+    public List<OrderLineGetDto> bulkCreateOrderLines(List<OrderLineCreateDto> orderLineCreateDtos) {
+        return List.of();
+    }
+
+    @Override
+    public boolean validateOrderLine(OrderLineCreateDto orderLineCreateDto) {
+        return false;
+    }
+
+    @Override
+    public List<OrderLineGetDto> getOrderLinesWithReviews() {
+        return List.of();
     }
 
     private OrderLineGetDto convertToGetDto(OrderLine orderLine) {

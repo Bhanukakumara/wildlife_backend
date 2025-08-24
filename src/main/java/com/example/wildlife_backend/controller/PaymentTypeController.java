@@ -3,6 +3,7 @@ package com.example.wildlife_backend.controller;
 import com.example.wildlife_backend.dto.PaymentType.PaymentTypeCreateDto;
 import com.example.wildlife_backend.dto.PaymentType.PaymentTypeGetDto;
 import com.example.wildlife_backend.service.PaymentTypeService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,8 +21,9 @@ public class PaymentTypeController {
 
     // Create a new payment type
     @PostMapping
-    public ResponseEntity<PaymentTypeGetDto> createPaymentType(@RequestBody PaymentTypeCreateDto paymentTypeCreateDto) {
-        return new ResponseEntity<>(paymentTypeService.createPaymentType(paymentTypeCreateDto), HttpStatus.CREATED);
+    public ResponseEntity<PaymentTypeGetDto> createPaymentType(@Valid @RequestBody PaymentTypeCreateDto paymentTypeCreateDto) {
+        PaymentTypeGetDto createdPaymentType = paymentTypeService.createPaymentType(paymentTypeCreateDto);
+        return new ResponseEntity<>(createdPaymentType, HttpStatus.CREATED);
     }
 
     // Get payment type by ID
@@ -42,9 +44,29 @@ public class PaymentTypeController {
         return new ResponseEntity<>(paymentTypes, HttpStatus.OK);
     }
 
+    // Get payment type by value
+    @GetMapping("/by-value/{value}")
+    public ResponseEntity<PaymentTypeGetDto> getPaymentTypeByValue(@PathVariable String value) {
+        Optional<PaymentTypeGetDto> paymentType = paymentTypeService.getPaymentTypeByValue(value);
+        return paymentType.map(type -> new ResponseEntity<>(type, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    // Search payment types by value (partial match)
+    @GetMapping("/search")
+    public ResponseEntity<List<PaymentTypeGetDto>> searchPaymentTypesByValue(@RequestParam String value) {
+        List<PaymentTypeGetDto> paymentTypes = paymentTypeService.searchPaymentTypesByValue(value);
+        if (paymentTypes.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(paymentTypes, HttpStatus.OK);
+    }
+
     // Update payment type
     @PutMapping("/{paymentTypeId}")
-    public ResponseEntity<PaymentTypeGetDto> updatePaymentType(@PathVariable Long paymentTypeId, @RequestBody PaymentTypeCreateDto paymentTypeCreateDto) {
+    public ResponseEntity<PaymentTypeGetDto> updatePaymentType(
+            @PathVariable Long paymentTypeId,
+            @Valid @RequestBody PaymentTypeCreateDto paymentTypeCreateDto) {
         Optional<PaymentTypeGetDto> updatedPaymentType = paymentTypeService.updatePaymentType(paymentTypeId, paymentTypeCreateDto);
         return updatedPaymentType.map(type -> new ResponseEntity<>(type, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
@@ -52,12 +74,39 @@ public class PaymentTypeController {
 
     // Delete payment type
     @DeleteMapping("/{paymentTypeId}")
-    public ResponseEntity<Void> deletePaymentType(@PathVariable Long paymentTypeId) {
-        try {
-            paymentTypeService.deletePaymentType(paymentTypeId);
+    public ResponseEntity<Boolean> deletePaymentType(@PathVariable Long paymentTypeId) {
+        boolean deleted = paymentTypeService.deletePaymentType(paymentTypeId);
+        if (deleted) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    // Bulk create payment types
+    @PostMapping("/bulk-create")
+    public ResponseEntity<List<PaymentTypeGetDto>> bulkCreatePaymentTypes(
+            @Valid @RequestBody List<PaymentTypeCreateDto> paymentTypeCreateDtos) {
+        List<PaymentTypeGetDto> createdPaymentTypes = paymentTypeService.bulkCreatePaymentTypes(paymentTypeCreateDtos);
+        return new ResponseEntity<>(createdPaymentTypes, HttpStatus.CREATED);
+    }
+
+    // Validate payment type data
+    @PostMapping("/validate")
+    public ResponseEntity<String> validatePaymentType(@Valid @RequestBody PaymentTypeCreateDto paymentTypeCreateDto) {
+        boolean isValid = paymentTypeService.validatePaymentType(paymentTypeCreateDto);
+        if (isValid) {
+            return new ResponseEntity<>("Payment type data is valid", HttpStatus.OK);
+        }
+        return new ResponseEntity<>("Invalid payment type data", HttpStatus.BAD_REQUEST);
+    }
+
+    // Get payment types with associated user payment methods
+    @GetMapping("/with-user-payment-methods")
+    public ResponseEntity<List<PaymentTypeGetDto>> getPaymentTypesWithUserPaymentMethods() {
+        List<PaymentTypeGetDto> paymentTypes = paymentTypeService.getPaymentTypesWithUserPaymentMethods();
+        if (paymentTypes.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(paymentTypes, HttpStatus.OK);
     }
 }

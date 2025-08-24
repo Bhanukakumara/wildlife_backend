@@ -53,11 +53,39 @@ public PaymentTypeGetDto createPaymentType(PaymentTypeCreateDto paymentTypeCreat
     }
 
     @Override
-    public void deletePaymentType(Long paymentTypeId) {
+    public boolean deletePaymentType(Long paymentTypeId) {
         if (!paymentTypeRepository.existsById(paymentTypeId)) {
             throw new ResourceNotFoundException("PaymentType not found with id: " + paymentTypeId);
         }
-        paymentTypeRepository.deleteById(paymentTypeId);
+        else {
+            paymentTypeRepository.deleteById(paymentTypeId);
+            return true;
+        }
+    }
+
+    @Override
+    public Optional<PaymentTypeGetDto> getPaymentTypeByValue(String value) {
+        return Optional.empty();
+    }
+
+    @Override
+    public List<PaymentTypeGetDto> searchPaymentTypesByValue(String value) {
+        return List.of();
+    }
+
+    @Override
+    public List<PaymentTypeGetDto> bulkCreatePaymentTypes(List<PaymentTypeCreateDto> paymentTypeCreateDtos) {
+        return List.of();
+    }
+
+    @Override
+    public boolean validatePaymentType(PaymentTypeCreateDto paymentTypeCreateDto) {
+        return false;
+    }
+
+    @Override
+    public List<PaymentTypeGetDto> getPaymentTypesWithUserPaymentMethods() {
+        return List.of();
     }
 
     private PaymentTypeGetDto convertToGetDto(PaymentType paymentType) {

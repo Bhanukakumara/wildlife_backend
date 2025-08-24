@@ -88,11 +88,26 @@ public class PromotionServiceImpl implements PromotionService {
     }
 
     @Override
-    public void deletePromotion(Long promotionId) {
-        if (!promotionRepository.existsById(promotionId)) {
-            throw new ResourceNotFoundException("Promotion not found with id: " + promotionId);
+    public boolean deletePromotion(Long promotionId) {
+        if (promotionRepository.existsById(promotionId)) {
+            promotionRepository.deleteById(promotionId);
         }
-        promotionRepository.deleteById(promotionId);
+        return promotionRepository.existsById(promotionId);
+    }
+
+    @Override
+    public List<PromotionGetDto> getActivePromotions() {
+        return List.of();
+    }
+
+    @Override
+    public List<PromotionGetDto> searchPromotionsByName(String name) {
+        return List.of();
+    }
+
+    @Override
+    public List<PromotionGetDto> getPromotionsByCategoryId(Long categoryId) {
+        return List.of();
     }
 
     private PromotionGetDto convertToGetDto(Promotion promotion) {
