@@ -13,8 +13,8 @@ public interface CountryService {
     List<Country> createCoutryList(List<Country> countryList);
     List<Country> getCoutryList();
     Country updateCountry(Country country);
-    void deleteCountry(Long id);
-    Country updateCountry(Long id, Country countryDetails);
+    boolean deleteCountry(Long id);
+    Optional<CountryGetDto> updateCountry(Long id, CountryCreateDto countryDetails);
 
     List<CountryGetDto> createCountryList(@Valid List<CountryCreateDto> countryCreateDtos);
 

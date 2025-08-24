@@ -49,22 +49,22 @@ public class UserPaymentMethodController {
     }
 
     // Get all user payment methods with pagination, sorting, and filtering by user ID
-    @GetMapping
-    public ResponseEntity<Page<UserPaymentMethodGetDto>> getAllUserPaymentMethods(
-            @RequestParam(required = false) Long userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id,asc") String[] sort) {
-        try {
-            Sort.Direction direction = Sort.Direction.fromString(sort[1]);
-            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
-            Page<UserPaymentMethodGetDto> paymentMethods = userPaymentMethodService.getAllUserPaymentMethods(userId, pageable);
-            return new ResponseEntity<>(paymentMethods, HttpStatus.OK);
-        } catch (Exception e) {
-            log.error("Error retrieving payment methods: {}", e.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+//    @GetMapping
+//    public ResponseEntity<Page<UserPaymentMethodGetDto>> getAllUserPaymentMethods(
+//            @RequestParam(required = false) Long userId,
+//            @RequestParam(defaultValue = "0") int page,
+//            @RequestParam(defaultValue = "10") int size,
+//            @RequestParam(defaultValue = "id,asc") String[] sort) {
+//        try {
+//            Sort.Direction direction = Sort.Direction.fromString(sort[1]);
+//            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
+//            Page<UserPaymentMethodGetDto> paymentMethods = userPaymentMethodService.getAllUserPaymentMethods();
+//            return new ResponseEntity<>(paymentMethods, HttpStatus.OK);
+//        } catch (Exception e) {
+//            log.error("Error retrieving payment methods: {}", e.getMessage());
+//            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
 
     // Update user payment method with partial update support
 //    @PatchMapping("/{userPaymentMethodId}")

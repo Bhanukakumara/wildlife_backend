@@ -110,6 +110,16 @@ public class PromotionServiceImpl implements PromotionService {
         return List.of();
     }
 
+    @Override
+    public List<PromotionGetDto> bulkCreatePromotions(List<PromotionCreateDto> promotionCreateDtos) {
+        return List.of();
+    }
+
+    @Override
+    public boolean validatePromotion(PromotionCreateDto promotionCreateDto) {
+        return false;
+    }
+
     private PromotionGetDto convertToGetDto(Promotion promotion) {
         Set<Long> categoryIds = promotion.getProduct_category() != null ? 
             promotion.getProduct_category().stream()

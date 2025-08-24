@@ -5,7 +5,6 @@ import com.example.wildlife_backend.dto.Country.CountryGetDto;
 import com.example.wildlife_backend.entity.Country;
 import com.example.wildlife_backend.repository.CountryRepository;
 import com.example.wildlife_backend.service.CountryService;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.EntityExistsException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,20 +49,6 @@ public class CountryServiceImpl implements CountryService {
     }
 
     @Override
-    public Country updateCountry(Long id, Country countryDetails) {
-        Country country = countryRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Country not found with id " + id));
-
-        // Validate input
-        if (countryDetails.getName() == null || countryDetails.getName().trim().isEmpty()) {
-            throw new IllegalArgumentException("Country name cannot be null or empty");
-        }
-
-        country.setName(countryDetails.getName());
-        return countryRepository.save(country);
-    }
-
-    @Override
     public List<CountryGetDto> createCountryList(List<CountryCreateDto> countryCreateDtos) {
         return List.of();
     }
@@ -99,11 +84,16 @@ public class CountryServiceImpl implements CountryService {
     }
 
     @Override
-    public void deleteCountry(Long id) {
-        Country country = countryRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Country not found with id " + id));
+    public boolean deleteCountry(Long id) {
+        if (countryRepository.existsById(id)) {
+            countryRepository.deleteById(id);
+        }
+        return true;
+    }
 
-        countryRepository.delete(country);
+    @Override
+    public Optional<CountryGetDto> updateCountry(Long id, CountryCreateDto countryDetails) {
+        return null;
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.example.wildlife_backend.service;
 
 import com.example.wildlife_backend.dto.Promotion.PromotionCreateDto;
 import com.example.wildlife_backend.dto.Promotion.PromotionGetDto;
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,4 +19,8 @@ public interface PromotionService {
     List<PromotionGetDto> searchPromotionsByName(String name);
 
     List<PromotionGetDto> getPromotionsByCategoryId(Long categoryId);
+
+    List<PromotionGetDto> bulkCreatePromotions(@Valid List<PromotionCreateDto> promotionCreateDtos);
+
+    boolean validatePromotion(@Valid PromotionCreateDto promotionCreateDto);
 }

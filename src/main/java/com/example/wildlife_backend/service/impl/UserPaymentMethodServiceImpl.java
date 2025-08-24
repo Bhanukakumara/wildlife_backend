@@ -101,6 +101,16 @@ public class UserPaymentMethodServiceImpl implements UserPaymentMethodService {
         userPaymentMethodRepository.deleteById(userPaymentMethodId);
     }
 
+    @Override
+    public Optional<UserPaymentMethodGetDto> setDefaultPaymentMethod(Long userPaymentMethodId) {
+        return Optional.empty();
+    }
+
+    @Override
+    public boolean validatePaymentMethod(Long userPaymentMethodId) {
+        return false;
+    }
+
     private UserPaymentMethodGetDto convertToGetDto(UserPaymentMethod userPaymentMethod) {
         return UserPaymentMethodGetDto.builder()
                 .id(userPaymentMethod.getId())

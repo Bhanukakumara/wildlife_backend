@@ -17,5 +17,5 @@ public interface UserPaymentMethodService {
 
     boolean validatePaymentMethod(Long userPaymentMethodId);
 
-    List<ShopOrderDto> getOrderHistoryByPaymentMethod(Long userPaymentMethodId);
+//    List<ShopOrderDto> getOrderHistoryByPaymentMethod(Long userPaymentMethodId);
 }

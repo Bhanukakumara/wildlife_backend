@@ -158,6 +158,26 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         return shoppingCartItemRepository.countByShoppingCartId(shoppingCart.getId());
     }
 
+    @Override
+    public boolean validateCartItem(Long userId, ShoppingCartItemCreateDto itemDto) {
+        return false;
+    }
+
+    @Override
+    public List<ShoppingCartGetDto> getCartsByProductItemId(Long productItemId) {
+        return List.of();
+    }
+
+    @Override
+    public BigDecimal calculateCartTotal(Long userId) {
+        return null;
+    }
+
+    @Override
+    public ShoppingCartGetDto bulkAddItemsToCart(Long userId, List<ShoppingCartItemCreateDto> itemDtos) {
+        return null;
+    }
+
     private ShoppingCart getOrCreateShoppingCart(Long userId) {
         return shoppingCartRepository.findByUserId(userId)
                 .orElseGet(() -> {
