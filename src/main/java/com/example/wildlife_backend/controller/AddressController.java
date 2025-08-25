@@ -34,9 +34,13 @@ public class AddressController {
     // Get address by ID
     @GetMapping("/get-by-id/{addressId}")
     public ResponseEntity<AddressGetDto> getAddressById(@PathVariable Long addressId) {
-        Optional<AddressGetDto> addressById = addressService.getAddressById(addressId);
-        return addressById.map(addressGetDto -> new ResponseEntity<>(addressGetDto, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        AddressGetDto addressById = addressService.getAddressById(addressId);
+        if (addressById == null) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        else {
+            return new ResponseEntity<>(addressById, HttpStatus.OK);
+        }
     }
 
     // Get all addresses for a specific user
@@ -74,9 +78,13 @@ public class AddressController {
     public ResponseEntity<AddressGetDto> updateAddress(
             @PathVariable Long addressId,
             @Valid @RequestBody AddressCreateDto addressCreateDto) {
-        Optional<AddressGetDto> updatedAddress = addressService.updateAddress(addressId, addressCreateDto);
-        return updatedAddress.map(address -> new ResponseEntity<>(address, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        AddressGetDto updatedAddress = addressService.updateAddress(addressId, addressCreateDto);
+        if (updatedAddress == null) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        else {
+            return new ResponseEntity<>(updatedAddress, HttpStatus.OK);
+        }
     }
 
     // Associate an address with a shop order

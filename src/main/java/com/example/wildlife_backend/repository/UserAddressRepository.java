@@ -11,4 +11,6 @@ public interface UserAddressRepository extends JpaRepository<UserAddress,Long> {
     @Transactional
     @Query("DELETE FROM UserAddress ua WHERE ua.address.id = ?1")
     void deleteByAddressId(Long addressId);
+
+    UserAddress findByAddressId(Long addressId);
 }

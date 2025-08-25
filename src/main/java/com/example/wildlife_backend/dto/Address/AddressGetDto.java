@@ -20,4 +20,5 @@ public class AddressGetDto {
     private AddressType addressType;
     private String deliveryInstructions;
     private String country;
+    private Boolean isDefault;
 }

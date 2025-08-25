@@ -58,32 +58,36 @@ public class AddressServiceImpl implements AddressService {
         UserAddress userAddress = UserAddress.builder()
                 .user(userOpt.get())
                 .address(savedAddress)
-                .isDefault(addressCreateDto.isDefault())
+                .isDefault(addressCreateDto.getIsDefault())
                 .build();
         userAddressRepository.save(userAddress);
 
-        return convertAddressToDto(savedAddress);
+        return convertAddressToDto(savedAddress, userAddress);
     }
 
     @Override
-    public Optional<AddressGetDto> getAddressById(Long addressId) {
+    public AddressGetDto getAddressById(Long addressId) {
         if (addressId == null) {
             throw new IllegalArgumentException("addressId cannot be null");
         }
+        UserAddress userAddress = userAddressRepository.findByAddressId(addressId);
         Optional<Address> addressOpt = addressRepository.findById(addressId);
-        return addressOpt.map(this::convertAddressToDto);
+        if (addressOpt.isEmpty()) {
+            throw new IllegalArgumentException("Address with ID " + addressId + " not found");
+        }
+        return convertAddressToDto(addressOpt.get(), userAddress);
     }
 
     @Override
     public List<AddressGetDto> getAllAddresses() {
         List<Address> addressList = addressRepository.findAll();
         List<AddressGetDto> addressGetDtoList = new ArrayList<>();
-        addressList.forEach(address -> addressGetDtoList.add(convertAddressToDto(address)));
+        addressList.forEach(address -> addressGetDtoList.add(convertAddressToDto(address, userAddressRepository.findByAddressId(address.getId()))));
         return addressGetDtoList;
     }
 
     @Override
-    public Optional<AddressGetDto> updateAddress(Long addressId, AddressCreateDto addressCreateDto) {
+    public AddressGetDto updateAddress(Long addressId, AddressCreateDto addressCreateDto) {
         if (addressId == null) {
             throw new IllegalArgumentException("addressId cannot be null");
         }
@@ -93,28 +97,35 @@ public class AddressServiceImpl implements AddressService {
 
         Optional<Address> existingAddressOpt = addressRepository.findById(addressId);
         if (existingAddressOpt.isEmpty()) {
-            return Optional.empty();
+            throw new IllegalArgumentException("Address with ID " + addressId + " not found");
         }
 
         Address existingAddress = getAddress(addressCreateDto, existingAddressOpt);
-
-        Address updatedAddress = addressRepository.save(existingAddress);
-        return Optional.of(convertAddressToDto(updatedAddress));
+        if (existingAddress == null) {
+            throw new IllegalArgumentException("Address with ID " + addressId + " not found");
+        }
+        else {
+            addressRepository.save(existingAddress);
+        }
+        return convertAddressToDto(existingAddress, userAddressRepository.findByAddressId(addressId));
     }
 
     private static Address getAddress(AddressCreateDto addressCreateDto, Optional<Address> existingAddressOpt) {
-        Address existingAddress = existingAddressOpt.get();
-        existingAddress.setUnitNumber(addressCreateDto.getUnitNumber());
-        existingAddress.setStreetNumber(addressCreateDto.getStreetNumber());
-        existingAddress.setAddressLine1(addressCreateDto.getAddressLine1());
-        existingAddress.setAddressLine2(addressCreateDto.getAddressLine2());
-        existingAddress.setCity(addressCreateDto.getCity());
-        existingAddress.setStateProvince(addressCreateDto.getStateProvince());
-        existingAddress.setPostalCode(addressCreateDto.getPostalCode());
-        existingAddress.setAddressType(addressCreateDto.getAddressType());
-        existingAddress.setDeliveryInstructions(addressCreateDto.getDeliveryInstructions());
-        existingAddress.setCountry(addressCreateDto.getCountry());
-        return existingAddress;
+        if (existingAddressOpt.isPresent()) {
+            Address existingAddress = existingAddressOpt.get();
+            existingAddress.setUnitNumber(addressCreateDto.getUnitNumber());
+            existingAddress.setStreetNumber(addressCreateDto.getStreetNumber());
+            existingAddress.setAddressLine1(addressCreateDto.getAddressLine1());
+            existingAddress.setAddressLine2(addressCreateDto.getAddressLine2());
+            existingAddress.setCity(addressCreateDto.getCity());
+            existingAddress.setStateProvince(addressCreateDto.getStateProvince());
+            existingAddress.setPostalCode(addressCreateDto.getPostalCode());
+            existingAddress.setAddressType(addressCreateDto.getAddressType());
+            existingAddress.setDeliveryInstructions(addressCreateDto.getDeliveryInstructions());
+            existingAddress.setCountry(addressCreateDto.getCountry());
+            return existingAddress;
+        }
+        return null;
     }
 
     @Override
@@ -129,12 +140,26 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public List<AddressGetDto> getAddressesByUserId(Long userId) {
-        return List.of();
+        List<AddressGetDto> addressGetDtoList = new ArrayList<>();
+        userAddressRepository.findAll().forEach(address -> {
+            if (address.getUser().getId().equals(userId)){
+                Address address1 = address.getAddress();
+                AddressGetDto addressGetDto = convertAddressToDto(address1, address);
+                addressGetDtoList.add(addressGetDto);
+            }
+        });
+        return addressGetDtoList;
     }
 
     @Override
     public List<AddressGetDto> getAddressesByType(String addressType) {
-        return List.of();
+        List<AddressGetDto> addressGetDtoList = new ArrayList<>();
+        addressRepository.findAll().forEach(address -> {
+            if (address.getAddressType().toString().equals(addressType)) {
+                addressGetDtoList.add(convertAddressToDto(address, userAddressRepository.findByAddressId(address.getId())));
+            }
+        });
+        return addressGetDtoList;
     }
 
     @Override
@@ -147,7 +172,7 @@ public class AddressServiceImpl implements AddressService {
         return false;
     }
 
-    private AddressGetDto convertAddressToDto(Address address) {
+    private AddressGetDto convertAddressToDto(Address address, UserAddress userAddress) {
         return AddressGetDto.builder()
                 .id(address.getId())
                 .unitNumber(address.getUnitNumber())
@@ -160,6 +185,7 @@ public class AddressServiceImpl implements AddressService {
                 .addressType(address.getAddressType())
                 .deliveryInstructions(address.getDeliveryInstructions())
                 .country(address.getCountry().getName())
+                .isDefault(userAddress.isDefault())
                 .build();
     }
 }

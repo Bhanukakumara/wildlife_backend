@@ -19,5 +19,5 @@ public class AddressCreateDto {
     private AddressType addressType;
     private String deliveryInstructions;
     private Country country;
-    private boolean isDefault;
+    private Boolean isDefault;
 }
