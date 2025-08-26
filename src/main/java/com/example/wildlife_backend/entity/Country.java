@@ -5,10 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -21,6 +18,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Country {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,11 +29,11 @@ public class Country {
     @Size(min = 2, max = 100, message = "Country name must be between 2 and 100 characters")
     private String name;
 
-    @Column(name = "country_code", nullable = false, unique = true, length = 2)
+    @Column(name = "code", nullable = false, unique = true, length = 2)
     @NotBlank(message = "Country code is required")
     @Size(min = 2, max = 2, message = "Country code must be exactly 2 characters.")
     @Pattern(regexp = "^[A-Z]{2}$", message = "Country code must be 2 uppercase letters.")
-    private String countryCode;
+    private String code;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

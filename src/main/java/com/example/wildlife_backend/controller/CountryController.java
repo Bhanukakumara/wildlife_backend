@@ -33,8 +33,8 @@ public class CountryController {
 
     // Bulk create countries
     @PostMapping("/create-country-list")
-    public ResponseEntity<List<CountryGetDto>> createCountryList(@Valid @RequestBody List<CountryCreateDto> countryCreateDtos) {
-        List<CountryGetDto> createdCountries = countryService.createCountryList(countryCreateDtos);
+    public ResponseEntity<List<CountryGetDto>> createCountryList(@Valid @RequestBody List<CountryCreateDto> countryCreateDto) {
+        List<CountryGetDto> createdCountries = countryService.createCountryList(countryCreateDto);
         return new ResponseEntity<>(createdCountries, HttpStatus.CREATED);
     }
 
@@ -51,17 +51,21 @@ public class CountryController {
     // Get country by ID
     @GetMapping("/get-by-id/{id}")
     public ResponseEntity<CountryGetDto> getCountryById(@PathVariable Long id) {
-        Optional<CountryGetDto> country = countryService.getCountryById(id);
-        return country.map(countryDto -> new ResponseEntity<>(countryDto, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        CountryGetDto country = countryService.getCountryById(id);
+        if (country == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return ResponseEntity.ok(country);
     }
 
     // Get country by country code
-    @GetMapping("/get-by-code/{countryCode}")
-    public ResponseEntity<CountryGetDto> getCountryByCode(@PathVariable String countryCode) {
-        Optional<CountryGetDto> country = countryService.getCountryByCode(countryCode);
-        return country.map(countryDto -> new ResponseEntity<>(countryDto, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    @GetMapping("/get-by-code/{code}")
+    public ResponseEntity<CountryGetDto> getCountryByCode(@PathVariable String code) {
+        CountryGetDto country = countryService.getCountryByCode(code);
+        if (country == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return ResponseEntity.ok(country);
     }
 
     // Search countries by name (partial match)
@@ -77,9 +81,11 @@ public class CountryController {
     // Update a country
     @PutMapping("/update/{id}")
     public ResponseEntity<CountryGetDto> updateCountry(@PathVariable Long id, @Valid @RequestBody CountryCreateDto countryCreateDto) {
-        Optional<CountryGetDto> updatedCountry = countryService.updateCountry(id, countryCreateDto);
-        return updatedCountry.map(country -> new ResponseEntity<>(country, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        CountryGetDto updatedCountry = countryService.updateCountry(id, countryCreateDto);
+        if (updatedCountry == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return ResponseEntity.ok(updatedCountry);
     }
 
     // Delete a country
@@ -100,15 +106,5 @@ public class CountryController {
             return new ResponseEntity<>("Country data is valid", HttpStatus.OK);
         }
         return new ResponseEntity<>("Invalid country data", HttpStatus.BAD_REQUEST);
-    }
-
-    // Get countries with associated addresses
-    @GetMapping("/get-with-addresses")
-    public ResponseEntity<List<CountryGetDto>> getCountriesWithAddresses() {
-        List<CountryGetDto> countries = countryService.getCountriesWithAddresses();
-        if (countries.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(countries, HttpStatus.OK);
     }
 }

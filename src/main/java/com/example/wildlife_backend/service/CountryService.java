@@ -10,23 +10,18 @@ import java.util.Optional;
 
 public interface CountryService {
     CountryGetDto createCountry(CountryCreateDto countryCreateDto);
-    List<Country> createCoutryList(List<Country> countryList);
-    List<Country> getCoutryList();
-    Country updateCountry(Country country);
     boolean deleteCountry(Long id);
-    Optional<CountryGetDto> updateCountry(Long id, CountryCreateDto countryDetails);
+    CountryGetDto updateCountry(Long id, CountryCreateDto countryDetails);
 
-    List<CountryGetDto> createCountryList(@Valid List<CountryCreateDto> countryCreateDtos);
+    List<CountryGetDto> createCountryList(@Valid List<CountryCreateDto> countryCreateDto);
 
     List<CountryGetDto> getCountryList();
 
-    Optional<CountryGetDto> getCountryById(Long id);
+    CountryGetDto getCountryById(Long id);
 
-    Optional<CountryGetDto> getCountryByCode(String countryCode);
+    CountryGetDto getCountryByCode(String code);
 
     List<CountryGetDto> searchCountriesByName(String name);
 
     boolean validateCountry(@Valid CountryCreateDto countryCreateDto);
-
-    List<CountryGetDto> getCountriesWithAddresses();
 }
