@@ -22,7 +22,29 @@ public class CountryServiceImpl implements CountryService {
 
     @Override
     public CountryGetDto createCountry(CountryCreateDto countryCreateDto) {
-        return null;
+
+        // Check if a country with the given country code already exists
+        if (countryRepository.existsByCountryCode(countryCreateDto.getCode())) {
+            throw new EntityExistsException("Country with code " + countryCreateDto.getCode() + " already exists");
+        }
+        if (countryRepository.existsByName(countryCreateDto.getName())) {
+            throw new EntityExistsException("Country with name " + countryCreateDto.getName() + " already exists");
+        }
+
+        // Create a new Country entity
+        Country country = new Country();
+        country.setName(countryCreateDto.getName());
+        country.setCountryCode(countryCreateDto.getCode());
+
+        // Save the entity to the database
+        Country savedCountry = countryRepository.save(country);
+
+        // Convert the saved entity to CountryGetDto
+        return CountryGetDto.builder()
+                .id(savedCountry.getId())
+                .name(savedCountry.getName())
+                .code(savedCountry.getCountryCode())
+                .build();
     }
 
     @Override

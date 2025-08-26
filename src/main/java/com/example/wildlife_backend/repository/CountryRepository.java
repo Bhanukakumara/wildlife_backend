@@ -7,4 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CountryRepository extends JpaRepository<Country,Long> {
     boolean existsByName(@NotBlank(message = "Country name is required") @Size(min = 2, max = 100, message = "Country name must be between 2 and 100 characters") String name);
+    boolean existsByCountryCode(String code);
 }

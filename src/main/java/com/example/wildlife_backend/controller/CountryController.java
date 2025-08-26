@@ -23,8 +23,12 @@ public class CountryController {
     // Create a new country
     @PostMapping("/create")
     public ResponseEntity<CountryGetDto> createCountry(@Valid @RequestBody CountryCreateDto countryCreateDto) {
-        CountryGetDto createdCountry = countryService.createCountry(countryCreateDto);
-        return new ResponseEntity<>(createdCountry, HttpStatus.CREATED);
+        try {
+            CountryGetDto createdCountry = countryService.createCountry(countryCreateDto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdCountry);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+        }
     }
 
     // Bulk create countries
