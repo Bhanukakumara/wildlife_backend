@@ -1,7 +1,7 @@
 package com.example.wildlife_backend.controller;
 
-import com.example.wildlife_backend.dto.Product.ProductItemCreateDto;
-import com.example.wildlife_backend.dto.Product.ProductItemGetDto;
+import com.example.wildlife_backend.dto.ProductItem.ProductItemCreateDto;
+import com.example.wildlife_backend.dto.ProductItem.ProductItemGetDto;
 import com.example.wildlife_backend.service.ProductItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -104,15 +104,12 @@ public class ProductItemController {
         return new ResponseEntity<>(productItems, HttpStatus.OK);
     }
 
-    // Update product item
-    @PutMapping("/{productItemId}")
-    public ResponseEntity<Void> updateProductItem(@PathVariable Long productItemId, @RequestBody ProductItemCreateDto productItemCreateDto) {
-        boolean updated = productItemService.updateProductItem(productItemId, productItemCreateDto);
-        if (updated) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    }
+// Update product item
+@PutMapping("/{productItemId}")
+public ResponseEntity<Void> updateProductItem(@PathVariable Long productItemId, @RequestBody ProductItemCreateDto productItemCreateDto) {
+    Optional<ProductItemGetDto> updatedProductItem = productItemService.updateProductItem(productItemId, productItemCreateDto);
+    return updatedProductItem.isPresent() ? new ResponseEntity<>(HttpStatus.NO_CONTENT) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+}
 
     // Delete product item
     @DeleteMapping("/{productItemId}")

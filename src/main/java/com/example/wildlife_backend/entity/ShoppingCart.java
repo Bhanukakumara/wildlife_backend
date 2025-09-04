@@ -28,4 +28,8 @@ public class ShoppingCart {
 
     @OneToMany(mappedBy = "shoppingCart", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<ShoppingCartItem> shoppingCartItems = new HashSet<>();
+
+    public Set<ShoppingCartItem> getItems() {
+        return shoppingCartItems;
+    }
 }

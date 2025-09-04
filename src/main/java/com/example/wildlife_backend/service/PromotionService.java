@@ -18,8 +18,6 @@ public interface PromotionService {
 
     List<PromotionGetDto> searchPromotionsByName(String name);
 
-    List<PromotionGetDto> getPromotionsByCategoryId(Long categoryId);
-
     List<PromotionGetDto> bulkCreatePromotions(@Valid List<PromotionCreateDto> promotionCreateDtos);
 
     boolean validatePromotion(@Valid PromotionCreateDto promotionCreateDto);

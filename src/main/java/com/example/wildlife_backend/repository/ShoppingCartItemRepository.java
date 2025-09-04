@@ -13,9 +13,6 @@ import java.util.Optional;
 public interface ShoppingCartItemRepository extends JpaRepository<ShoppingCartItem, Long> {
     List<ShoppingCartItem> findByShoppingCartId(Long shoppingCartId);
     
-    @Query("SELECT sci FROM ShoppingCartItem sci WHERE sci.shoppingCart.id = :cartId AND sci.productItem.id = :productItemId")
-    Optional<ShoppingCartItem> findByShoppingCartIdAndProductItemId(@Param("cartId") Long cartId, @Param("productItemId") Long productItemId);
-    
     @Query("SELECT COUNT(sci) FROM ShoppingCartItem sci WHERE sci.shoppingCart.id = :cartId")
     int countByShoppingCartId(@Param("cartId") Long cartId);
     

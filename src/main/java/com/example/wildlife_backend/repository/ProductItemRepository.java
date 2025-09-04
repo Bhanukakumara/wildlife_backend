@@ -32,4 +32,8 @@ public interface ProductItemRepository extends JpaRepository<ProductItem, Long> 
     
     @Query("SELECT pi FROM ProductItem pi WHERE pi.sku LIKE %:keyword% OR pi.name LIKE %:keyword%")
     List<ProductItem> searchByKeyword(@Param("keyword") String keyword);
+    
+    List<ProductItem> findByQtyInStockGreaterThan(Integer qtyInStock);
+    
+    List<ProductItem> findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String name, String description);
 }

@@ -2,7 +2,7 @@ package com.example.wildlife_backend.service.impl;
 
 import com.example.wildlife_backend.dto.Product.ProductCreateDto;
 import com.example.wildlife_backend.dto.Product.ProductGetDto;
-import com.example.wildlife_backend.dto.Product.ProductCategoryGetDto;
+import com.example.wildlife_backend.dto.ProductCategory.ProductCategoryGetDto;
 import com.example.wildlife_backend.dto.Product.ProductItemGetDto;
 import com.example.wildlife_backend.entity.Product;
 import com.example.wildlife_backend.entity.ProductCategory;
@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -213,7 +214,7 @@ public class ProductServiceImpl implements ProductService {
                     .build();
         }
 
-        List<ProductItemGetDto> productItemDtos = product.getProductItems().stream()
+        Set<ProductItemGetDto> productItemDtos = product.getProductItems().stream()
                 .map(item -> ProductItemGetDto.builder()
                         .id(item.getId())
                         .name(item.getName())
@@ -231,9 +232,9 @@ public class ProductServiceImpl implements ProductService {
                         .imageUrl(item.getImageUrl())
                         .createdAt(item.getCreatedAt())
                         .updatedAt(item.getUpdatedAt())
-                        .productId(item.getProduct().getId())
+                        .productId(product.getId())
                         .build())
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
 
         return ProductGetDto.builder()
                 .id(product.getId())
@@ -269,5 +270,34 @@ public class ProductServiceImpl implements ProductService {
                     .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + dto.getCategoryId()));
             product.setCategory(category);
         }
+    }
+
+    @Override
+    @Transactional
+    public List<ProductGetDto> bulkCreateProducts(List<ProductCreateDto> productCreateDtos) {
+        List<Product> products = productCreateDtos.stream()
+                .map(this::convertCreateDtoToProduct)
+                .collect(Collectors.toList());
+
+        List<Product> savedProducts = productRepository.saveAll(products);
+        return savedProducts.stream()
+                .map(this::convertProductToGetDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean validateProduct(ProductCreateDto productCreateDto) {
+        // Basic validation logic
+//        if (productCreateDto.getName() == null || productCreateDto.getName().isEmpty()) {
+//            return false;
+//        }
+//        if (productCreateDto.getPrice() == null || productCreateDto.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+//            return false;
+//        }
+//        if (productCreateDto.getQtyInStock() == null || productCreateDto.getQtyInStock() < 0) {
+//            return false;
+//        }
+        return true;
     }
 }

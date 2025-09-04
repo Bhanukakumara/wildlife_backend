@@ -40,10 +40,10 @@ public class Promotion {
     private BigDecimal discount_rate;
 
     @Column(nullable = false)
-    private LocalDateTime start_date;
+    private LocalDateTime startDate;
 
     @Column(nullable = false)
-    private LocalDateTime end_date;
+    private LocalDateTime endDate;
 
     @ManyToMany(mappedBy = "promotions")
     private Set<ProductCategory> product_category = new HashSet<>();

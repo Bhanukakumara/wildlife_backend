@@ -1,8 +1,9 @@
 package com.example.wildlife_backend.controller;
 
-import com.example.wildlife_backend.dto.Product.ProductCategoryCreateDto;
-import com.example.wildlife_backend.dto.Product.ProductCategoryGetDto;
+import com.example.wildlife_backend.dto.ProductCategory.ProductCategoryCreateDto;
+import com.example.wildlife_backend.dto.ProductCategory.ProductCategoryGetDto;
 import com.example.wildlife_backend.service.ProductCategoryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,75 +17,51 @@ import java.util.Optional;
 @CrossOrigin
 @RequiredArgsConstructor
 public class ProductCategoryController {
-
     private final ProductCategoryService productCategoryService;
 
     // Create a new product category
-    @PostMapping("/create")
-    public ResponseEntity<ProductCategoryGetDto> createCategory(@RequestBody ProductCategoryCreateDto categoryCreateDto) {
-        return new ResponseEntity<>(productCategoryService.createCategory(categoryCreateDto), HttpStatus.CREATED);
+    @PostMapping
+    public ResponseEntity<ProductCategoryGetDto> createProductCategory(@Valid @RequestBody ProductCategoryCreateDto productCategoryCreateDto) {
+        ProductCategoryGetDto createdCategory = productCategoryService.createProductCategory(productCategoryCreateDto);
+        return new ResponseEntity<>(createdCategory, HttpStatus.CREATED);
     }
 
-    // Get category by ID
+    // Get product category by ID
     @GetMapping("/{categoryId}")
-    public ResponseEntity<ProductCategoryGetDto> getCategoryById(@PathVariable Long categoryId) {
-        Optional<ProductCategoryGetDto> category = productCategoryService.getCategoryById(categoryId);
-        return category.map(categoryGetDto -> new ResponseEntity<>(categoryGetDto, HttpStatus.OK))
+    public ResponseEntity<ProductCategoryGetDto> getProductCategoryById(@PathVariable Long categoryId) {
+        Optional<ProductCategoryGetDto> category = productCategoryService.getProductCategoryById(categoryId);
+        return category.map(cat -> new ResponseEntity<>(cat, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    // Get category by name
-    @GetMapping("/name/{name}")
-    public ResponseEntity<ProductCategoryGetDto> getCategoryByName(@PathVariable String name) {
-        Optional<ProductCategoryGetDto> category = productCategoryService.getCategoryByName(name);
-        return category.map(categoryGetDto -> new ResponseEntity<>(categoryGetDto, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
-    }
-
-    // Get all categories
+    // Get all product categories
     @GetMapping
-    public ResponseEntity<List<ProductCategoryGetDto>> getAllCategories() {
-        List<ProductCategoryGetDto> categories = productCategoryService.getAllCategories();
+    public ResponseEntity<List<ProductCategoryGetDto>> getAllProductCategories() {
+        List<ProductCategoryGetDto> categories = productCategoryService.getAllProductCategories();
         if (categories.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         return new ResponseEntity<>(categories, HttpStatus.OK);
     }
 
-    // Get all active categories
-    @GetMapping("/active")
-    public ResponseEntity<List<ProductCategoryGetDto>> getAllActiveCategories() {
-        List<ProductCategoryGetDto> activeCategories = productCategoryService.getAllActiveCategories();
-        if (activeCategories.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(activeCategories, HttpStatus.OK);
-    }
-
-    // Search categories by keyword
-    @GetMapping("/search")
-    public ResponseEntity<List<ProductCategoryGetDto>> searchCategories(@RequestParam String keyword) {
-        List<ProductCategoryGetDto> categories = productCategoryService.searchCategoriesByKeyword(keyword);
-        if (categories.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(categories, HttpStatus.OK);
-    }
-
-    // Update category
+    // Update product category
     @PutMapping("/{categoryId}")
-    public ResponseEntity<Void> updateCategory(@PathVariable Long categoryId, @RequestBody ProductCategoryCreateDto categoryCreateDto) {
-        boolean updated = productCategoryService.updateCategory(categoryId, categoryCreateDto);
-        if (updated) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    public ResponseEntity<ProductCategoryGetDto> updateProductCategory(
+            @PathVariable Long categoryId,
+            @Valid @RequestBody ProductCategoryCreateDto productCategoryCreateDto) {
+        Optional<ProductCategoryGetDto> updatedCategory = productCategoryService.updateProductCategory(categoryId, productCategoryCreateDto);
+        return updatedCategory.map(cat -> new ResponseEntity<>(cat, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    // Delete category
+    // Delete product category
     @DeleteMapping("/{categoryId}")
-    public ResponseEntity<Void> deleteCategory(@PathVariable Long categoryId) {
-        productCategoryService.deleteCategory(categoryId);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<Void> deleteProductCategory(@PathVariable Long categoryId) {
+        boolean deleted = productCategoryService.deleteProductCategory(categoryId);
+        if (deleted) {
+            return new ResponseEntity<>(HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 }

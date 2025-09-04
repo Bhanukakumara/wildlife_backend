@@ -11,6 +11,7 @@ import com.example.wildlife_backend.service.OrderLineService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -84,26 +85,50 @@ public class OrderLineServiceImpl implements OrderLineService {
 
     @Override
     public List<OrderLineGetDto> getOrderLinesByOrderId(Long orderId) {
-        return List.of();
+        return orderLineRepository.findByShopOrderId(orderId)
+                .stream()
+                .map(this::convertToGetDto)
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<OrderLineGetDto> getOrderLinesByProductItemId(Long productItemId) {
-        return List.of();
+        return orderLineRepository.findByProductItemId(productItemId)
+                .stream()
+                .map(this::convertToGetDto)
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<OrderLineGetDto> bulkCreateOrderLines(List<OrderLineCreateDto> orderLineCreateDtos) {
-        return List.of();
+        List<OrderLine> orderLines = orderLineCreateDtos.stream()
+                .map(dto -> {
+                    OrderLine orderLine = new OrderLine();
+                    if (dto.getProductItemId() != null) {
+                        ProductItem productItem = productItemRepository.findById(dto.getProductItemId())
+                                .orElseThrow(() -> new ResourceNotFoundException("ProductItem not found with id: " + dto.getProductItemId()));
+                        orderLine.setProductItem(productItem);
+                    }
+                    orderLine.setQuantity(dto.getQuantity());
+                    orderLine.setPrice(dto.getPrice());
+                    return orderLine;
+                })
+                .collect(Collectors.toList());
+        List<OrderLine> savedOrderLines = orderLineRepository.saveAll(orderLines);
+        return savedOrderLines.stream()
+                .map(this::convertToGetDto)
+                .collect(Collectors.toList());
     }
 
-    @Override
-    public boolean validateOrderLine(OrderLineCreateDto orderLineCreateDto) {
-        return false;
-    }
+@Override
+public boolean validateOrderLine(OrderLineCreateDto orderLineCreateDto) {
+    return orderLineCreateDto.getQuantity() > 0 && orderLineCreateDto.getPrice().compareTo(BigDecimal.ZERO) > 0;
+}
 
     @Override
     public List<OrderLineGetDto> getOrderLinesWithReviews() {
+        // Assuming we have a Review entity and a relationship between OrderLine and Review
+        // For now, we return an empty list
         return List.of();
     }
 

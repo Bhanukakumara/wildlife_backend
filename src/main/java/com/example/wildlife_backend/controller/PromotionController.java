@@ -64,16 +64,6 @@ public class PromotionController {
         return new ResponseEntity<>(promotions, HttpStatus.OK);
     }
 
-    // Get promotions by product category ID
-    @GetMapping("/by-category/{categoryId}")
-    public ResponseEntity<List<PromotionGetDto>> getPromotionsByCategoryId(@PathVariable Long categoryId) {
-        List<PromotionGetDto> promotions = promotionService.getPromotionsByCategoryId(categoryId);
-        if (promotions.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(promotions, HttpStatus.OK);
-    }
-
     // Update promotion
     @PutMapping("/{promotionId}")
     public ResponseEntity<PromotionGetDto> updatePromotion(

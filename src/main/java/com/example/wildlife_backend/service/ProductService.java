@@ -25,4 +25,8 @@ public interface ProductService {
     List<ProductGetDto> searchProductsByKeyword(String keyword);
     Page<ProductGetDto> getAllActiveProductsPaginated(Pageable pageable);
     boolean existsByName(String name);
+    
+    // New Methods
+    List<ProductGetDto> bulkCreateProducts(List<ProductCreateDto> productCreateDtos);
+    boolean validateProduct(ProductCreateDto productCreateDto);
 }

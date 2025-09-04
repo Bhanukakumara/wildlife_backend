@@ -11,7 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "shpinng_method")
+@Table(name = "shipping_method")
 @Getter
 @Setter
 @NoArgsConstructor

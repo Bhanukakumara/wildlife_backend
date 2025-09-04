@@ -1,210 +1,150 @@
 package com.example.wildlife_backend.service.impl;
 
-import com.example.wildlife_backend.dto.Product.ProductItemCreateDto;
-import com.example.wildlife_backend.dto.Product.ProductItemGetDto;
-import com.example.wildlife_backend.entity.ProductItem;
+import com.example.wildlife_backend.dto.ProductItem.ProductItemCreateDto;
+import com.example.wildlife_backend.dto.ProductItem.ProductItemGetDto;
 import com.example.wildlife_backend.entity.Product;
-import com.example.wildlife_backend.exception.DuplicateResourceException;
+import com.example.wildlife_backend.entity.ProductItem;
 import com.example.wildlife_backend.exception.ResourceNotFoundException;
 import com.example.wildlife_backend.repository.ProductItemRepository;
 import com.example.wildlife_backend.repository.ProductRepository;
 import com.example.wildlife_backend.service.ProductItemService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductItemServiceImpl implements ProductItemService {
-
     private final ProductItemRepository productItemRepository;
     private final ProductRepository productRepository;
 
     @Override
-    @Transactional
     public ProductItemGetDto createProductItem(ProductItemCreateDto productItemCreateDto) {
-        validateProductItemCreation(productItemCreateDto);
+        ProductItem productItem = new ProductItem();
+        productItem.setName(productItemCreateDto.getName());
+        productItem.setSku(productItemCreateDto.getSku());
+        productItem.setDescription(productItemCreateDto.getDescription());
+        productItem.setPrice(productItemCreateDto.getPrice());
+        productItem.setWeight(productItemCreateDto.getWeight());
+        productItem.setWeightUnit(productItemCreateDto.getWeightUnit());
+        productItem.setLength(productItemCreateDto.getLength());
+        productItem.setWidth(productItemCreateDto.getWidth());
+        productItem.setHeight(productItemCreateDto.getHeight());
+        productItem.setCustomizable(productItemCreateDto.isCustomizable());
+        productItem.setFreeShipping(productItemCreateDto.isFreeShipping());
+        productItem.setQtyInStock(productItemCreateDto.getQtyInStock());
+        productItem.setImageUrl(productItemCreateDto.getImageUrl());
 
-        ProductItem productItem = convertCreateDtoToProductItem(productItemCreateDto);
+        Product product = productRepository.findById(productItemCreateDto.getProductId())
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productItemCreateDto.getProductId()));
+        productItem.setProduct(product);
+
         ProductItem savedProductItem = productItemRepository.save(productItem);
-
-        log.info("Created new product item with ID: {}", savedProductItem.getId());
-        return convertProductItemToGetDto(savedProductItem);
+        return convertToGetDto(savedProductItem);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Optional<ProductItemGetDto> getProductItemById(Long productItemId) {
         return productItemRepository.findById(productItemId)
-                .map(this::convertProductItemToGetDto);
+                .map(this::convertToGetDto);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Optional<ProductItemGetDto> getProductItemBySku(String sku) {
         return productItemRepository.findBySku(sku)
-                .map(this::convertProductItemToGetDto);
+                .map(this::convertToGetDto);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<ProductItemGetDto> getAllProductItems() {
-        List<ProductItem> productItems = productItemRepository.findAll();
-        if (productItems.isEmpty()) {
-            throw new ResourceNotFoundException("No product items found");
-        }
-        return productItems.stream()
-                .map(this::convertProductItemToGetDto)
-                .collect(Collectors.toList());
-    }
+@Override
+public List<ProductItemGetDto> getAvailableProductItems() {
+    return productItemRepository.findByQtyInStockGreaterThan(0)
+            .stream()
+            .map(this::convertToGetDto)
+            .collect(Collectors.toList());
+}
+
+@Override
+public List<ProductItemGetDto> getAvailableProductItemsByProduct(Long productId) {
+    return productItemRepository.findByProductIdAndQtyInStockGreaterThan(productId, 0)
+            .stream()
+            .map(this::convertToGetDto)
+            .collect(Collectors.toList());
+}
+
+@Override
+public List<ProductItemGetDto> getAllProductItems() {
+    return productItemRepository.findAll()
+            .stream()
+            .map(this::convertToGetDto)
+            .collect(Collectors.toList());
+}
+
+@Override
+public List<ProductItemGetDto> getProductItemsByProduct(Long productId) {
+    return productItemRepository.findByProductId(productId)
+            .stream()
+            .map(this::convertToGetDto)
+            .collect(Collectors.toList());
+}
+
+@Override
+public List<ProductItemGetDto> searchProductItemsByKeyword(String keyword) {
+    return productItemRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword)
+            .stream()
+            .map(this::convertToGetDto)
+            .collect(Collectors.toList());
+}
+
+@Override
+public List<ProductItemGetDto> getProductItemsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
+    return productItemRepository.findByPriceRange(minPrice, maxPrice)
+            .stream()
+            .map(this::convertToGetDto)
+            .collect(Collectors.toList());
+}
 
     @Override
-    @Transactional(readOnly = true)
-    public List<ProductItemGetDto> getProductItemsByProduct(Long productId) {
-        List<ProductItem> productItems = productItemRepository.findByProductId(productId);
-        if (productItems.isEmpty()) {
-            throw new ResourceNotFoundException("No product items found for product ID: " + productId);
-        }
-        return productItems.stream()
-                .map(this::convertProductItemToGetDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional
-    public boolean updateProductItem(Long productItemId, ProductItemCreateDto productItemDetails) {
+    public Optional<ProductItemGetDto> updateProductItem(Long productItemId, ProductItemCreateDto productItemCreateDto) {
         ProductItem existingProductItem = productItemRepository.findById(productItemId)
-                .orElseThrow(() -> new ResourceNotFoundException("Product item not found with id: " + productItemId));
+                .orElseThrow(() -> new ResourceNotFoundException("ProductItem not found with id: " + productItemId));
 
-        validateProductItemUpdate(existingProductItem, productItemDetails);
-        updateProductItemFromDto(existingProductItem, productItemDetails);
-        productItemRepository.save(existingProductItem);
-        
-        log.info("Updated product item with ID: {}", productItemId);
-        return true;
+        existingProductItem.setName(productItemCreateDto.getName());
+        existingProductItem.setSku(productItemCreateDto.getSku());
+        existingProductItem.setDescription(productItemCreateDto.getDescription());
+        existingProductItem.setPrice(productItemCreateDto.getPrice());
+        existingProductItem.setWeight(productItemCreateDto.getWeight());
+        existingProductItem.setWeightUnit(productItemCreateDto.getWeightUnit());
+        existingProductItem.setLength(productItemCreateDto.getLength());
+        existingProductItem.setWidth(productItemCreateDto.getWidth());
+        existingProductItem.setHeight(productItemCreateDto.getHeight());
+        existingProductItem.setCustomizable(productItemCreateDto.isCustomizable());
+        existingProductItem.setFreeShipping(productItemCreateDto.isFreeShipping());
+        existingProductItem.setQtyInStock(productItemCreateDto.getQtyInStock());
+        existingProductItem.setImageUrl(productItemCreateDto.getImageUrl());
+
+        Product product = productRepository.findById(productItemCreateDto.getProductId())
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productItemCreateDto.getProductId()));
+        existingProductItem.setProduct(product);
+
+        ProductItem updatedProductItem = productItemRepository.save(existingProductItem);
+        return Optional.of(convertToGetDto(updatedProductItem));
     }
 
     @Override
-    @Transactional
     public boolean deleteProductItem(Long productItemId) {
-        ProductItem productItem = productItemRepository.findById(productItemId)
-                .orElseThrow(() -> new ResourceNotFoundException("Product item not found with id: " + productItemId));
-        
-        productItemRepository.delete(productItem);
-        log.info("Deleted product item with ID: {}", productItemId);
-        return true;
+        if (productItemRepository.existsById(productItemId)) {
+            productItemRepository.deleteById(productItemId);
+        }
+        return !productItemRepository.existsById(productItemId);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<ProductItemGetDto> getAvailableProductItems() {
-        List<ProductItem> availableItems = productItemRepository.findAvailableItems();
-        if (availableItems.isEmpty()) {
-            throw new ResourceNotFoundException("No available product items found");
-        }
-        return availableItems.stream()
-                .map(this::convertProductItemToGetDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ProductItemGetDto> getAvailableProductItemsByProduct(Long productId) {
-        List<ProductItem> availableItems = productItemRepository.findAvailableItemsByProduct(productId);
-        if (availableItems.isEmpty()) {
-            throw new ResourceNotFoundException("No available product items found for product ID: " + productId);
-        }
-        return availableItems.stream()
-                .map(this::convertProductItemToGetDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ProductItemGetDto> searchProductItemsByKeyword(String keyword) {
-        List<ProductItem> productItems = productItemRepository.searchByKeyword(keyword);
-        if (productItems.isEmpty()) {
-            throw new ResourceNotFoundException("No product items found with keyword: " + keyword);
-        }
-        return productItems.stream()
-                .map(this::convertProductItemToGetDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ProductItemGetDto> getProductItemsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
-        List<ProductItem> productItems = productItemRepository.findByPriceRange(minPrice, maxPrice);
-        if (productItems.isEmpty()) {
-            throw new ResourceNotFoundException("No product items found in price range: " + minPrice + " - " + maxPrice);
-        }
-        return productItems.stream()
-                .map(this::convertProductItemToGetDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public boolean existsBySku(String sku) {
-        return productItemRepository.existsBySku(sku);
-    }
-
-    private void validateProductItemCreation(ProductItemCreateDto productItemCreateDto) {
-        if (productItemRepository.existsBySku(productItemCreateDto.getSku())) {
-            throw new DuplicateResourceException("SKU already exists: " + productItemCreateDto.getSku());
-        }
-        
-        if (productItemCreateDto.getProductId() != null) {
-            productRepository.findById(productItemCreateDto.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productItemCreateDto.getProductId()));
-        }
-    }
-
-    private void validateProductItemUpdate(ProductItem existingProductItem, ProductItemCreateDto productItemDetails) {
-        if (!existingProductItem.getSku().equals(productItemDetails.getSku()) &&
-                productItemRepository.existsBySku(productItemDetails.getSku())) {
-            throw new DuplicateResourceException("SKU already exists: " + productItemDetails.getSku());
-        }
-        
-        if (productItemDetails.getProductId() != null) {
-            productRepository.findById(productItemDetails.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productItemDetails.getProductId()));
-        }
-    }
-
-    private ProductItem convertCreateDtoToProductItem(ProductItemCreateDto dto) {
-        ProductItem productItem = new ProductItem();
-        productItem.setName(dto.getName());
-        productItem.setSku(dto.getSku());
-        productItem.setDescription(dto.getDescription());
-        productItem.setPrice(dto.getPrice());
-        productItem.setWeight(dto.getWeight());
-        productItem.setWeightUnit(dto.getWeightUnit());
-        productItem.setLength(dto.getLength());
-        productItem.setWidth(dto.getWidth());
-        productItem.setHeight(dto.getHeight());
-        productItem.setCustomizable(dto.isCustomizable());
-        productItem.setFreeShipping(dto.isFreeShipping());
-        productItem.setQtyInStock(dto.getQtyInStock());
-        productItem.setImageUrl(dto.getImageUrl());
-        
-        if (dto.getProductId() != null) {
-            Product product = productRepository.findById(dto.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + dto.getProductId()));
-            productItem.setProduct(product);
-        }
-        
-        return productItem;
-    }
-
-    private ProductItemGetDto convertProductItemToGetDto(ProductItem productItem) {
+    private ProductItemGetDto convertToGetDto(ProductItem productItem) {
         return ProductItemGetDto.builder()
                 .id(productItem.getId())
                 .name(productItem.getName())
@@ -224,27 +164,5 @@ public class ProductItemServiceImpl implements ProductItemService {
                 .updatedAt(productItem.getUpdatedAt())
                 .productId(productItem.getProduct().getId())
                 .build();
-    }
-
-    private void updateProductItemFromDto(ProductItem productItem, ProductItemCreateDto dto) {
-        productItem.setName(dto.getName());
-        productItem.setSku(dto.getSku());
-        productItem.setDescription(dto.getDescription());
-        productItem.setPrice(dto.getPrice());
-        productItem.setWeight(dto.getWeight());
-        productItem.setWeightUnit(dto.getWeightUnit());
-        productItem.setLength(dto.getLength());
-        productItem.setWidth(dto.getWidth());
-        productItem.setHeight(dto.getHeight());
-        productItem.setCustomizable(dto.isCustomizable());
-        productItem.setFreeShipping(dto.isFreeShipping());
-        productItem.setQtyInStock(dto.getQtyInStock());
-        productItem.setImageUrl(dto.getImageUrl());
-        
-        if (dto.getProductId() != null) {
-            Product product = productRepository.findById(dto.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + dto.getProductId()));
-            productItem.setProduct(product);
-        }
     }
 }
