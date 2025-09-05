@@ -16,7 +16,6 @@ public interface ProductItemService {
     List<ProductItemGetDto> getAvailableProductItems();
     List<ProductItemGetDto> getAvailableProductItemsByProduct(Long productId);
     List<ProductItemGetDto> searchProductItemsByKeyword(String keyword);
-    List<ProductItemGetDto> getProductItemsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice);
     Optional<ProductItemGetDto> updateProductItem(Long productItemId, ProductItemCreateDto productItemCreateDto);
     boolean deleteProductItem(Long productItemId);
 }

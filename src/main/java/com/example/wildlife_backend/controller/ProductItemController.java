@@ -92,18 +92,6 @@ public class ProductItemController {
         return new ResponseEntity<>(productItems, HttpStatus.OK);
     }
 
-    // Get product items by price range
-    @GetMapping("/price-range")
-    public ResponseEntity<List<ProductItemGetDto>> getProductItemsByPriceRange(
-            @RequestParam BigDecimal minPrice,
-            @RequestParam BigDecimal maxPrice) {
-        List<ProductItemGetDto> productItems = productItemService.getProductItemsByPriceRange(minPrice, maxPrice);
-        if (productItems.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(productItems, HttpStatus.OK);
-    }
-
 // Update product item
 @PutMapping("/{productItemId}")
 public ResponseEntity<Void> updateProductItem(@PathVariable Long productItemId, @RequestBody ProductItemCreateDto productItemCreateDto) {

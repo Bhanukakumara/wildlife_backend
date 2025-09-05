@@ -15,15 +15,10 @@ public interface ProductService {
     Optional<ProductGetDto> getProductById(Long productId);
     Optional<ProductGetDto> getProductByName(String name);
     List<ProductGetDto> getAllProducts();
-    List<ProductGetDto> getAllActiveProducts();
     boolean updateProduct(Long productId, ProductCreateDto productDetails);
     boolean deleteProduct(Long productId);
     
     // Additional Operations
-    List<ProductGetDto> getProductsByCategory(Long categoryId);
-    List<ProductGetDto> getFeaturedProducts();
-    List<ProductGetDto> searchProductsByKeyword(String keyword);
-    Page<ProductGetDto> getAllActiveProductsPaginated(Pageable pageable);
     boolean existsByName(String name);
     
     // New Methods

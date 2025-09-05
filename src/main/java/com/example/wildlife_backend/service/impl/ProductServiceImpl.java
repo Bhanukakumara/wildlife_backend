@@ -70,18 +70,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<ProductGetDto> getAllActiveProducts() {
-        List<Product> activeProducts = productRepository.findByIsActive(true);
-        if (activeProducts.isEmpty()) {
-            throw new ResourceNotFoundException("No active products found");
-        }
-        return activeProducts.stream()
-                .map(this::convertProductToGetDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
     @Transactional
     public boolean updateProduct(Long productId, ProductCreateDto productDetails) {
         Product existingProduct = productRepository.findById(productId)
@@ -104,49 +92,6 @@ public class ProductServiceImpl implements ProductService {
         productRepository.delete(product);
         log.info("Deleted product with ID: {}", productId);
         return true;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ProductGetDto> getProductsByCategory(Long categoryId) {
-        List<Product> products = productRepository.findByCategoryIdAndIsActive(categoryId, true);
-        if (products.isEmpty()) {
-            throw new ResourceNotFoundException("No products found for category ID: " + categoryId);
-        }
-        return products.stream()
-                .map(this::convertProductToGetDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ProductGetDto> getFeaturedProducts() {
-        List<Product> featuredProducts = productRepository.findByIsFeaturedTrueAndIsActiveTrue();
-        if (featuredProducts.isEmpty()) {
-            throw new ResourceNotFoundException("No featured products found");
-        }
-        return featuredProducts.stream()
-                .map(this::convertProductToGetDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ProductGetDto> searchProductsByKeyword(String keyword) {
-        List<Product> products = productRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword);
-        if (products.isEmpty()) {
-            throw new ResourceNotFoundException("No products found with keyword: " + keyword);
-        }
-        return products.stream()
-                .map(this::convertProductToGetDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<ProductGetDto> getAllActiveProductsPaginated(Pageable pageable) {
-        Page<Product> productsPage = productRepository.findByIsActive(true, pageable);
-        return productsPage.map(this::convertProductToGetDto);
     }
 
     @Override

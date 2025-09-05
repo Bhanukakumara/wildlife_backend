@@ -100,14 +100,6 @@ public class ProductItemServiceImpl implements ProductItemService {
     }
 
     @Override
-    public List<ProductItemGetDto> getProductItemsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
-        return productItemRepository.findByPriceBetween(minPrice, maxPrice)
-                .stream()
-                .map(this::convertToGetDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
     public Optional<ProductItemGetDto> updateProductItem(Long productItemId, ProductItemCreateDto productItemCreateDto) {
         ProductItem existingProductItem = productItemRepository.findById(productItemId)
                 .orElseThrow(() -> new ResourceNotFoundException("ProductItem not found with id: " + productItemId));
