@@ -1,7 +1,13 @@
 package com.example.wildlife_backend.service.impl;
 
-import com.example.wildlife_backend.entity.*;
-import com.example.wildlife_backend.repository.*;
+import com.example.wildlife_backend.entity.ProductItem;
+import com.example.wildlife_backend.entity.ShoppingCart;
+import com.example.wildlife_backend.entity.ShoppingCartItem;
+import com.example.wildlife_backend.entity.User;
+import com.example.wildlife_backend.repository.ProductItemRepository;
+import com.example.wildlife_backend.repository.ShoppingCartItemRepository;
+import com.example.wildlife_backend.repository.ShoppingCartRepository;
+import com.example.wildlife_backend.repository.UserRepository;
 import com.example.wildlife_backend.service.ShoppingCartService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -34,13 +40,13 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     }
 
     @Override
-    public ShoppingCart addItemToCart(Long userId, Long productId, int quantity) {
+    public ShoppingCart addItemToCart(Long userId, Long productItemId, int quantity) {
         ShoppingCart cart = getCartByUserId(userId);
-        ProductItem product = productItemRepository.findById(productId)
-                .orElseThrow(() -> new EntityNotFoundException("Product not found"));
+        ProductItem productItem = productItemRepository.findById(productItemId)
+                .orElseThrow(() -> new EntityNotFoundException("ProductItem not found"));
 
         Optional<ShoppingCartItem> existingItemOpt = cart.getShoppingCartItems().stream()
-                .filter(item -> item.getProduct().getId().equals(productId))
+                .filter(item -> item.getProductItem().getId().equals(productItemId))
                 .findFirst();
 
         if (existingItemOpt.isPresent()) {
@@ -49,7 +55,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
             shoppingCartItemRepository.save(existingItem);
         } else {
             ShoppingCartItem newItem = new ShoppingCartItem();
-            newItem.setProduct(product);
+            newItem.setProductItem(productItem);
             newItem.setQuantity(quantity);
             newItem.setShoppingCart(cart);
             cart.getShoppingCartItems().add(newItem);
