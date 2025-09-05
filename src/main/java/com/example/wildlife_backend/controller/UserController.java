@@ -44,7 +44,7 @@ public class UserController {
         }
     }
 
-    @GetMapping("/{userId}")
+    @GetMapping("/get-by-id{userId}")
     public ResponseEntity<UserGetDto> getUserById(
             @PathVariable Long userId) {
 
@@ -52,7 +52,7 @@ public class UserController {
         return new ResponseEntity<>(user.get(), HttpStatus.OK);
     }
 
-    @GetMapping("/email/{email}")
+    @GetMapping("/get-by-email/{email}")
     public ResponseEntity<UserGetDto> getUserByEmail( @PathVariable @Email String email) {
 
         Optional<UserGetDto> user = userService.getUserByEmail(email);
@@ -60,7 +60,7 @@ public class UserController {
         return user.map(userGetDto -> new ResponseEntity<>(userGetDto, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @GetMapping
+    @GetMapping("/get-all")
     public ResponseEntity<List<UserGetDto>> getAllUsers(){
         List<UserGetDto> allUsers = userService.getAllUsers();
         if (allUsers.isEmpty()){
@@ -79,7 +79,7 @@ public class UserController {
         return new ResponseEntity<>(userGetDto, HttpStatus.BAD_REQUEST);
     }
 
-    @PutMapping("/{userId}")
+    @PutMapping("/update/{userId}")
     public ResponseEntity<UserGetDto> updateUser(
             @PathVariable Long userId,
             @Valid @RequestBody UserCreateDto userCreateDto) {
@@ -93,7 +93,7 @@ public class UserController {
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @DeleteMapping("/{userId}")
+    @DeleteMapping("/delete/{userId}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
         boolean deleted = userService.deleteUser(userId);
 

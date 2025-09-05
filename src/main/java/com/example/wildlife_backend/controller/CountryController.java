@@ -96,14 +96,4 @@ public class CountryController {
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
-
-    // Validate country data
-    @PostMapping("/validate")
-    public ResponseEntity<String> validateCountry(@Valid @RequestBody CountryCreateDto countryCreateDto) {
-        boolean isValid = countryService.validateCountry(countryCreateDto);
-        if (isValid) {
-            return new ResponseEntity<>("Country data is valid", HttpStatus.OK);
-        }
-        return new ResponseEntity<>("Invalid country data", HttpStatus.BAD_REQUEST);
-    }
 }

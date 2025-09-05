@@ -96,14 +96,4 @@ public class AddressController {
         return associatedAddress.map(address -> new ResponseEntity<>(address, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
-
-    // Validate address data
-    @PostMapping("/validate")
-    public ResponseEntity<String> validateAddress(@Valid @RequestBody AddressCreateDto addressCreateDto) {
-        boolean isValid = addressService.validateAddress(addressCreateDto);
-        if (isValid) {
-            return new ResponseEntity<>("Address is valid", HttpStatus.OK);
-        }
-        return new ResponseEntity<>("Invalid address data", HttpStatus.BAD_REQUEST);
-    }
 }
