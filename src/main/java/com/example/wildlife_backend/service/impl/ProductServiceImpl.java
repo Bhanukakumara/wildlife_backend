@@ -2,14 +2,14 @@ package com.example.wildlife_backend.service.impl;
 
 import com.example.wildlife_backend.dto.Product.ProductCreateDto;
 import com.example.wildlife_backend.dto.Product.ProductGetDto;
-import com.example.wildlife_backend.dto.ProductCategory.ProductCategoryGetDto;
 import com.example.wildlife_backend.dto.Product.ProductItemGetDto;
+import com.example.wildlife_backend.dto.ProductCategory.ProductCategoryGetDto;
 import com.example.wildlife_backend.entity.Product;
 import com.example.wildlife_backend.entity.ProductCategory;
 import com.example.wildlife_backend.exception.DuplicateResourceException;
 import com.example.wildlife_backend.exception.ResourceNotFoundException;
-import com.example.wildlife_backend.repository.ProductRepository;
 import com.example.wildlife_backend.repository.ProductCategoryRepository;
+import com.example.wildlife_backend.repository.ProductRepository;
 import com.example.wildlife_backend.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,8 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -72,7 +72,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public List<ProductGetDto> getAllActiveProducts() {
-        List<Product> activeProducts = productRepository.findByActive(true);
+        List<Product> activeProducts = productRepository.findByIsActive(true);
         if (activeProducts.isEmpty()) {
             throw new ResourceNotFoundException("No active products found");
         }
@@ -90,7 +90,7 @@ public class ProductServiceImpl implements ProductService {
         validateProductUpdate(existingProduct, productDetails);
         updateProductFromDto(existingProduct, productDetails);
         productRepository.save(existingProduct);
-        
+
         log.info("Updated product with ID: {}", productId);
         return true;
     }
@@ -100,7 +100,7 @@ public class ProductServiceImpl implements ProductService {
     public boolean deleteProduct(Long productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
-        
+
         productRepository.delete(product);
         log.info("Deleted product with ID: {}", productId);
         return true;
@@ -109,7 +109,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public List<ProductGetDto> getProductsByCategory(Long categoryId) {
-        List<Product> products = productRepository.findByCategoryIdAndActive(categoryId, true);
+        List<Product> products = productRepository.findByCategoryIdAndIsActive(categoryId, true);
         if (products.isEmpty()) {
             throw new ResourceNotFoundException("No products found for category ID: " + categoryId);
         }
@@ -121,7 +121,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public List<ProductGetDto> getFeaturedProducts() {
-        List<Product> featuredProducts = productRepository.findFeaturedActiveProducts();
+        List<Product> featuredProducts = productRepository.findByIsFeaturedTrueAndIsActiveTrue();
         if (featuredProducts.isEmpty()) {
             throw new ResourceNotFoundException("No featured products found");
         }
@@ -133,7 +133,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public List<ProductGetDto> searchProductsByKeyword(String keyword) {
-        List<Product> products = productRepository.searchByKeyword(keyword);
+        List<Product> products = productRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword);
         if (products.isEmpty()) {
             throw new ResourceNotFoundException("No products found with keyword: " + keyword);
         }
@@ -145,7 +145,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public Page<ProductGetDto> getAllActiveProductsPaginated(Pageable pageable) {
-        Page<Product> productsPage = productRepository.findAllActiveProducts(pageable);
+        Page<Product> productsPage = productRepository.findByIsActive(true, pageable);
         return productsPage.map(this::convertProductToGetDto);
     }
 
@@ -159,7 +159,7 @@ public class ProductServiceImpl implements ProductService {
         if (productRepository.existsByName(productCreateDto.getName())) {
             throw new DuplicateResourceException("Product name already exists: " + productCreateDto.getName());
         }
-        
+
         if (productCreateDto.getCategoryId() != null) {
             productCategoryRepository.findById(productCreateDto.getCategoryId())
                     .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + productCreateDto.getCategoryId()));
@@ -171,7 +171,7 @@ public class ProductServiceImpl implements ProductService {
                 productRepository.existsByName(productDetails.getName())) {
             throw new DuplicateResourceException("Product name already exists: " + productDetails.getName());
         }
-        
+
         if (productDetails.getCategoryId() != null) {
             productCategoryRepository.findById(productDetails.getCategoryId())
                     .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + productDetails.getCategoryId()));
@@ -188,13 +188,13 @@ public class ProductServiceImpl implements ProductService {
         product.setMetaTitle(dto.getMetaTitle());
         product.setMetaDescription(dto.getMetaDescription());
         product.setMetaKeywords(dto.getMetaKeywords());
-        
+
         if (dto.getCategoryId() != null) {
             ProductCategory category = productCategoryRepository.findById(dto.getCategoryId())
                     .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + dto.getCategoryId()));
             product.setCategory(category);
         }
-        
+
         return product;
     }
 
@@ -264,7 +264,7 @@ public class ProductServiceImpl implements ProductService {
         product.setMetaTitle(dto.getMetaTitle());
         product.setMetaDescription(dto.getMetaDescription());
         product.setMetaKeywords(dto.getMetaKeywords());
-        
+
         if (dto.getCategoryId() != null) {
             ProductCategory category = productCategoryRepository.findById(dto.getCategoryId())
                     .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + dto.getCategoryId()));

@@ -12,10 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -61,53 +59,53 @@ public class ProductItemServiceImpl implements ProductItemService {
                 .map(this::convertToGetDto);
     }
 
-@Override
-public List<ProductItemGetDto> getAvailableProductItems() {
-    return productItemRepository.findByQtyInStockGreaterThan(0)
-            .stream()
-            .map(this::convertToGetDto)
-            .collect(Collectors.toList());
-}
+    @Override
+    public List<ProductItemGetDto> getAvailableProductItems() {
+        return productItemRepository.findByQtyInStockGreaterThan(0)
+                .stream()
+                .map(this::convertToGetDto)
+                .collect(Collectors.toList());
+    }
 
-@Override
-public List<ProductItemGetDto> getAvailableProductItemsByProduct(Long productId) {
-    return productItemRepository.findByProductIdAndQtyInStockGreaterThan(productId, 0)
-            .stream()
-            .map(this::convertToGetDto)
-            .collect(Collectors.toList());
-}
+    @Override
+    public List<ProductItemGetDto> getAvailableProductItemsByProduct(Long productId) {
+        return productItemRepository.findByProductIdAndQtyInStockGreaterThan(productId, 0)
+                .stream()
+                .map(this::convertToGetDto)
+                .collect(Collectors.toList());
+    }
 
-@Override
-public List<ProductItemGetDto> getAllProductItems() {
-    return productItemRepository.findAll()
-            .stream()
-            .map(this::convertToGetDto)
-            .collect(Collectors.toList());
-}
+    @Override
+    public List<ProductItemGetDto> getAllProductItems() {
+        return productItemRepository.findAll()
+                .stream()
+                .map(this::convertToGetDto)
+                .collect(Collectors.toList());
+    }
 
-@Override
-public List<ProductItemGetDto> getProductItemsByProduct(Long productId) {
-    return productItemRepository.findByProductId(productId)
-            .stream()
-            .map(this::convertToGetDto)
-            .collect(Collectors.toList());
-}
+    @Override
+    public List<ProductItemGetDto> getProductItemsByProduct(Long productId) {
+        return productItemRepository.findByProductId(productId)
+                .stream()
+                .map(this::convertToGetDto)
+                .collect(Collectors.toList());
+    }
 
-@Override
-public List<ProductItemGetDto> searchProductItemsByKeyword(String keyword) {
-    return productItemRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword)
-            .stream()
-            .map(this::convertToGetDto)
-            .collect(Collectors.toList());
-}
+    @Override
+    public List<ProductItemGetDto> searchProductItemsByKeyword(String keyword) {
+        return productItemRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword)
+                .stream()
+                .map(this::convertToGetDto)
+                .collect(Collectors.toList());
+    }
 
-@Override
-public List<ProductItemGetDto> getProductItemsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
-    return productItemRepository.findByPriceRange(minPrice, maxPrice)
-            .stream()
-            .map(this::convertToGetDto)
-            .collect(Collectors.toList());
-}
+    @Override
+    public List<ProductItemGetDto> getProductItemsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice) {
+        return productItemRepository.findByPriceBetween(minPrice, maxPrice)
+                .stream()
+                .map(this::convertToGetDto)
+                .collect(Collectors.toList());
+    }
 
     @Override
     public Optional<ProductItemGetDto> updateProductItem(Long productItemId, ProductItemCreateDto productItemCreateDto) {

@@ -2,8 +2,8 @@ package com.example.wildlife_backend.service.impl;
 
 import com.example.wildlife_backend.dto.ProductCategory.ProductCategoryCreateDto;
 import com.example.wildlife_backend.dto.ProductCategory.ProductCategoryGetDto;
-import com.example.wildlife_backend.entity.ProductCategory;
 import com.example.wildlife_backend.entity.Product;
+import com.example.wildlife_backend.entity.ProductCategory;
 import com.example.wildlife_backend.entity.Promotion;
 import com.example.wildlife_backend.exception.ResourceNotFoundException;
 import com.example.wildlife_backend.repository.ProductCategoryRepository;
@@ -11,7 +11,6 @@ import com.example.wildlife_backend.service.ProductCategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
