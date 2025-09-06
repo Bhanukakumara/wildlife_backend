@@ -3,7 +3,6 @@ package com.example.wildlife_backend.service;
 import com.example.wildlife_backend.dto.ProductItem.ProductItemCreateDto;
 import com.example.wildlife_backend.dto.ProductItem.ProductItemGetDto;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 

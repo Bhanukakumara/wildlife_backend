@@ -338,20 +338,4 @@ public class UserServiceImpl implements UserService {
         user.setRole(dto.getRole());
         user.setAccountStatus(dto.getAccountStatus());
     }
-
-    private AddressGetDto convertAddressToGetDto(Address address) {
-        return AddressGetDto.builder()
-                .id(address.getId())
-                .unitNumber(address.getUnitNumber())
-                .streetNumber(address.getStreetNumber())
-                .addressLine1(address.getAddressLine1())
-                .addressLine2(address.getAddressLine2())
-                .city(address.getCity())
-                .stateProvince(address.getStateProvince())
-                .postalCode(address.getPostalCode())
-                .addressType(address.getAddressType())
-                .deliveryInstructions(address.getDeliveryInstructions())
-                .country(address.getCountry().getName())
-                .build();
-    }
 }

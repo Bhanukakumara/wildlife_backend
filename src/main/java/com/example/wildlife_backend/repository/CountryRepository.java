@@ -1,8 +1,6 @@
 package com.example.wildlife_backend.repository;
 
 import com.example.wildlife_backend.entity.Country;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
