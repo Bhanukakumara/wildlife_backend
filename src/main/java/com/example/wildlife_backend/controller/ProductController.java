@@ -20,7 +20,7 @@ public class ProductController {
     private final ProductService productService;
 
     // Create a new product
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<ProductGetDto> createProduct(@RequestBody ProductCreateDto productCreateDto) {
         ProductGetDto createdProduct = productService.createProduct(productCreateDto);
         return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
@@ -35,7 +35,7 @@ public class ProductController {
     }
 
     // Get all products
-    @GetMapping
+    @GetMapping("/get-all")
     public ResponseEntity<List<ProductGetDto>> getAllProducts() {
         List<ProductGetDto> products = productService.getAllProducts();
         if (products.isEmpty()) {

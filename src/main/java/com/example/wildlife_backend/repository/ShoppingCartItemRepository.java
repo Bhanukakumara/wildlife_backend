@@ -7,14 +7,15 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface ShoppingCartItemRepository extends JpaRepository<ShoppingCartItem, Long> {
-    List<ShoppingCartItem> findByShoppingCartId(Long shoppingCartId);
-    
+
     @Query("SELECT COUNT(sci) FROM ShoppingCartItem sci WHERE sci.shoppingCart.id = :cartId")
     int countByShoppingCartId(@Param("cartId") Long cartId);
-    
+
     void deleteByShoppingCartId(Long shoppingCartId);
+
+    // Fixed: Changed from findByCartId to findByShoppingCartId
+    List<ShoppingCartItem> findByShoppingCartId(Long cartId);
 }

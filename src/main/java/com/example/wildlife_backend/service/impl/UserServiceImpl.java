@@ -193,7 +193,6 @@ public class UserServiceImpl implements UserService {
             String lastName = userCreateDto.getLastName() != null ? userCreateDto.getLastName().trim() : "";
             userCreateDto.setDisplayName(firstName + " " + lastName);
         }
-    
     }
    
    @Override
@@ -306,12 +305,6 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserGetDto convertUserToGetDto(User user) {
-        Set<AddressGetDto> addressGetDos = new HashSet<>();
-
-        user.getUserAddresses().forEach(userAddress -> {
-            Address address = userAddress.getAddress();
-            addressGetDos.add(convertAddressToGetDto(address));
-        });
         return UserGetDto.builder()
                 .id(user.getId()) // Corrected field name
                 .email(user.getEmail())
@@ -326,10 +319,6 @@ public class UserServiceImpl implements UserService {
                 .gender(user.getGender())
                 .role(user.getRole())
                 .accountStatus(user.getAccountStatus())
-                .createdDate(user.getCreatedAt())
-                .updatedDate(user.getUpdatedAt())
-                .deletedDate(user.getDeletedAt())
-                .addresses(addressGetDos)
                 .build();
     }
 

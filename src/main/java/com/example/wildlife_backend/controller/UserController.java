@@ -69,16 +69,6 @@ public class UserController {
         return new ResponseEntity<>(allUsers, HttpStatus.OK);
     }
 
-    @PutMapping("/profile")
-    public ResponseEntity<UserGetDto> updateUserProfile(
-            @Valid @RequestBody UserCreateDto userCreateDto) {
-        UserGetDto userGetDto = userService.createUser(userCreateDto);
-        if (userGetDto.getEmail() != null){
-            return new ResponseEntity<>(userGetDto, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(userGetDto, HttpStatus.BAD_REQUEST);
-    }
-
     @PutMapping("/update/{userId}")
     public ResponseEntity<UserGetDto> updateUser(
             @PathVariable Long userId,

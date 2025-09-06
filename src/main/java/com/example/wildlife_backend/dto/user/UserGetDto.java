@@ -30,8 +30,4 @@ public class UserGetDto {
     private Gender gender;
     private UserRole role;
     private AccountStatus accountStatus;
-    private LocalDate createdDate;
-    private LocalDate updatedDate;
-    private LocalDate deletedDate;
-    private Set<AddressGetDto> addresses;
 }

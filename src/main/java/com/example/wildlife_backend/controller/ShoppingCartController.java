@@ -1,5 +1,6 @@
 package com.example.wildlife_backend.controller;
 
+import com.example.wildlife_backend.dto.ShoppingCart.ShoppingCartGetDto;
 import com.example.wildlife_backend.entity.ShoppingCart;
 import com.example.wildlife_backend.entity.ShoppingCartItem;
 import com.example.wildlife_backend.service.ShoppingCartService;
@@ -19,19 +20,36 @@ public class ShoppingCartController {
 
     // Get cart by user id
     @GetMapping("/get-by-user-id/{userId}")
-    public ResponseEntity<ShoppingCart> getCartByUserId(@PathVariable Long userId) {
-        ShoppingCart cart = shoppingCartService.getCartByUserId(userId);
-        return ResponseEntity.ok(cart);
+    public ResponseEntity<ShoppingCartGetDto> getCartByUserId(@PathVariable Long userId) {
+        ShoppingCartGetDto cartByUserId = shoppingCartService.getCartByUserId(userId);
+        if (cartByUserId == null) {
+            return ResponseEntity.notFound().build();
+        }
+        else {
+            return ResponseEntity.ok(cartByUserId);
+        }
+    }
+
+    //get items count by user id
+    @GetMapping("/get-item-count/{userId}")
+    public ResponseEntity<Integer> getItemCountByUserId(@PathVariable Long userId) {
+        Integer itemCountByUserId = shoppingCartService.getItemCountByUserId(userId);
+        if (itemCountByUserId == null) {
+            return ResponseEntity.notFound().build();
+        }
+        else {
+            return ResponseEntity.ok(itemCountByUserId);
+        }
     }
 
     // Add item to cart
-    @PostMapping("/{userId}/items")
+    @PostMapping("/add-item/{userId}/items")
     public ResponseEntity<ShoppingCart> addItemToCart(
             @PathVariable Long userId,
-            @RequestParam Long productId,
+            @RequestParam Long productItemId,
             @RequestParam int quantity
     ) {
-        ShoppingCart updatedCart = shoppingCartService.addItemToCart(userId, productId, quantity);
+        ShoppingCart updatedCart = shoppingCartService.addItemToCart(userId, productItemId, quantity);
         return ResponseEntity.ok(updatedCart);
     }
 

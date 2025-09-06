@@ -38,6 +38,4 @@ public class ProductCreateDto {
 
     @NotNull(message = "Product category is required")
     private Long categoryId;
-
-    private Set<ProductItemCreateDto> productItems = new HashSet<>();
 }
