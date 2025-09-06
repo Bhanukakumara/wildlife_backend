@@ -11,15 +11,12 @@ import java.math.BigDecimal;
 @Setter
 @Builder
 public class ProductItemCreateDto {
-    @NotBlank(message = "Product Item name is required")
-    @Size(max = 100, message = "Product Item name must be less than 100 characters")
+    @NotBlank(message = "Name is required")
     private String name;
 
     @NotBlank(message = "SKU is required")
-    @Size(max = 64, message = "SKU must be at most 64 characters")
     private String sku;
 
-    @NotBlank(message = "Description is required")
     private String description;
 
     @DecimalMin(value = "0.01", inclusive = true, message = "Price must be greater than 0")
@@ -45,16 +42,15 @@ public class ProductItemCreateDto {
     @NotNull(message = "Customizable is required")
     private boolean customizable;
 
-    @NotNull(message = "Free shipping is required")
     private boolean freeShipping;
 
     @Min(value = 0, message = "Quantity cannot be negative")
     @NotNull(message = "Quantity in stock is required")
     private Integer qtyInStock;
 
-    @Size(max = 255, message = "Image URL must be at most 255 characters")
-    private String imageUrl;
-
     @NotNull(message = "Product ID is required")
     private Long productId;
+
+    @NotBlank(message = "Category ID is required")
+    private String categoryId;
 }

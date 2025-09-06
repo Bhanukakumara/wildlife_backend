@@ -5,8 +5,10 @@ import com.example.wildlife_backend.dto.ProductItem.ProductItemGetDto;
 import com.example.wildlife_backend.service.ProductItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,10 +21,12 @@ public class ProductItemController {
 
     private final ProductItemService productItemService;
 
-    // Create a new product item
-    @PostMapping("/create")
-    public ResponseEntity<ProductItemGetDto> createProductItem(@RequestBody ProductItemCreateDto productItemCreateDto) {
-        return new ResponseEntity<>(productItemService.createProductItem(productItemCreateDto), HttpStatus.CREATED);
+    // Create a new product item with image upload
+    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ProductItemGetDto> createProductItem(
+            @RequestPart("productItem") ProductItemCreateDto productItemCreateDto,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile) {
+        return new ResponseEntity<>(productItemService.createProductItem(productItemCreateDto, imageFile), HttpStatus.CREATED);
     }
 
     // Get product item by ID
@@ -91,12 +95,12 @@ public class ProductItemController {
         return new ResponseEntity<>(productItems, HttpStatus.OK);
     }
 
-// Update product item
-@PutMapping("/{productItemId}")
-public ResponseEntity<Void> updateProductItem(@PathVariable Long productItemId, @RequestBody ProductItemCreateDto productItemCreateDto) {
-    Optional<ProductItemGetDto> updatedProductItem = productItemService.updateProductItem(productItemId, productItemCreateDto);
-    return updatedProductItem.isPresent() ? new ResponseEntity<>(HttpStatus.NO_CONTENT) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
-}
+    // Update product item
+    @PutMapping("/{productItemId}")
+    public ResponseEntity<Void> updateProductItem(@PathVariable Long productItemId, @RequestBody ProductItemCreateDto productItemCreateDto) {
+        Optional<ProductItemGetDto> updatedProductItem = productItemService.updateProductItem(productItemId, productItemCreateDto);
+        return updatedProductItem.isPresent() ? new ResponseEntity<>(HttpStatus.NO_CONTENT) : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
 
     // Delete product item
     @DeleteMapping("/{productItemId}")

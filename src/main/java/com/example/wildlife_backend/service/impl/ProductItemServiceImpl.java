@@ -10,9 +10,15 @@ import com.example.wildlife_backend.repository.ProductRepository;
 import com.example.wildlife_backend.service.ProductItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,8 +27,10 @@ public class ProductItemServiceImpl implements ProductItemService {
     private final ProductItemRepository productItemRepository;
     private final ProductRepository productRepository;
 
+    private static final String UPLOAD_DIR = "uploads/";
+
     @Override
-    public ProductItemGetDto createProductItem(ProductItemCreateDto productItemCreateDto) {
+    public ProductItemGetDto createProductItem(ProductItemCreateDto productItemCreateDto, MultipartFile imageFile) {
         ProductItem productItem = new ProductItem();
         productItem.setName(productItemCreateDto.getName());
         productItem.setSku(productItemCreateDto.getSku());
@@ -36,7 +44,22 @@ public class ProductItemServiceImpl implements ProductItemService {
         productItem.setCustomizable(productItemCreateDto.isCustomizable());
         productItem.setFreeShipping(productItemCreateDto.isFreeShipping());
         productItem.setQtyInStock(productItemCreateDto.getQtyInStock());
-        productItem.setImageUrl(productItemCreateDto.getImageUrl());
+
+        // Handle image upload
+        if (imageFile != null && !imageFile.isEmpty()) {
+            try {
+                String fileName = UUID.randomUUID() + "_" + imageFile.getOriginalFilename();
+                Path uploadPath = Paths.get(UPLOAD_DIR);
+                if (!Files.exists(uploadPath)) {
+                    Files.createDirectories(uploadPath);
+                }
+                Path filePath = uploadPath.resolve(fileName);
+                Files.write(filePath, imageFile.getBytes());
+                productItem.setImageUrl(filePath.toString());
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to store image file", e);
+            }
+        }
 
         Product product = productRepository.findById(productItemCreateDto.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productItemCreateDto.getProductId()));
@@ -115,7 +138,6 @@ public class ProductItemServiceImpl implements ProductItemService {
         existingProductItem.setCustomizable(productItemCreateDto.isCustomizable());
         existingProductItem.setFreeShipping(productItemCreateDto.isFreeShipping());
         existingProductItem.setQtyInStock(productItemCreateDto.getQtyInStock());
-        existingProductItem.setImageUrl(productItemCreateDto.getImageUrl());
 
         Product product = productRepository.findById(productItemCreateDto.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productItemCreateDto.getProductId()));

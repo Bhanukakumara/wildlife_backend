@@ -1,11 +1,9 @@
 package com.example.wildlife_backend.service.impl;
 
-import com.example.wildlife_backend.dto.Address.AddressGetDto;
 import com.example.wildlife_backend.dto.user.UserCreateDto;
 import com.example.wildlife_backend.dto.user.UserGetDto;
 import com.example.wildlife_backend.dto.user.UserSearchDto;
 import com.example.wildlife_backend.dto.user.UserUpdatePasswordDto;
-import com.example.wildlife_backend.entity.Address;
 import com.example.wildlife_backend.entity.User;
 import com.example.wildlife_backend.exception.ResourceNotFoundException;
 import com.example.wildlife_backend.exception.DuplicateResourceException;
