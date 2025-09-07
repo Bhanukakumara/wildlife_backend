@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -156,6 +157,19 @@ public class ProductItemServiceImpl implements ProductItemService {
     }
 
     private ProductItemGetDto convertToGetDto(ProductItem productItem) {
+        String imageBase64 = null;
+        if (productItem.getImageUrl() != null && !productItem.getImageUrl().isEmpty()) {
+            try {
+                Path imagePath = Paths.get(productItem.getImageUrl());
+                if (Files.exists(imagePath)) {
+                    byte[] imageBytes = Files.readAllBytes(imagePath);
+                    imageBase64 = Base64.getEncoder().encodeToString(imageBytes);
+                }
+            } catch (IOException e) {
+                // Log error or handle
+            }
+        }
+
         return ProductItemGetDto.builder()
                 .id(productItem.getId())
                 .name(productItem.getName())
@@ -170,7 +184,7 @@ public class ProductItemServiceImpl implements ProductItemService {
                 .customizable(productItem.isCustomizable())
                 .freeShipping(productItem.isFreeShipping())
                 .qtyInStock(productItem.getQtyInStock())
-                .imageUrl(productItem.getImageUrl())
+                .imageBase64(imageBase64)
                 .createdAt(productItem.getCreatedAt())
                 .updatedAt(productItem.getUpdatedAt())
                 .productId(productItem.getProduct().getId())

@@ -37,7 +37,7 @@ public class ProductItemGetDto {
 
     private Integer qtyInStock;
 
-    private String imageUrl;
+    private String imageBase64;
 
     private LocalDateTime createdAt;
 
