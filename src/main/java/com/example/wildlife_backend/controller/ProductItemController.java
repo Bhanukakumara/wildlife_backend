@@ -103,7 +103,7 @@ public class ProductItemController {
     }
 
     // Delete product item
-    @DeleteMapping("/{productItemId}")
+    @DeleteMapping("/delete/{productItemId}")
     public ResponseEntity<Void> deleteProductItem(@PathVariable Long productItemId) {
         productItemService.deleteProductItem(productItemId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
