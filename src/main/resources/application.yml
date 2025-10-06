@@ -15,3 +15,8 @@ spring:
   jwt:
     secret: 0e3d419499e931ca750c178a45750227174f87934fdfa205625cdac1948855b3
     tokenExpiration: 86400
+
+cloudinary:
+  cloud-name: dadtqnsr4
+  api-key: 661823342174176
+  api-secret: 9j1BFOtJk9lIkEKmYguSq_6_ON8

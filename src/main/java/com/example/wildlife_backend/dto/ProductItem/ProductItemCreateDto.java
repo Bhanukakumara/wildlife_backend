@@ -53,4 +53,6 @@ public class ProductItemCreateDto {
 
     @NotBlank(message = "Category ID is required")
     private String categoryId;
+
+    private String imageUrl;
 }

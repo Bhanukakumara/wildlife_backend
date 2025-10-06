@@ -45,6 +45,7 @@ public class ProductItemServiceImpl implements ProductItemService {
         productItem.setCustomizable(productItemCreateDto.isCustomizable());
         productItem.setFreeShipping(productItemCreateDto.isFreeShipping());
         productItem.setQtyInStock(productItemCreateDto.getQtyInStock());
+        productItem.setImageUrl(productItemCreateDto.getImageUrl());
 
         // Handle image upload
         if (imageFile != null && !imageFile.isEmpty()) {
