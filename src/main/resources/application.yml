@@ -15,6 +15,7 @@ spring:
   jwt:
     secret: ${SPRING_JWT_SECRET}
     tokenExpiration: ${SPRING_JWT_TOKENEXPIRATION}
+    refreshTokenExpiration: ${SPRING_JWT_REFRESHTOKENEXPIRATION}
 
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME}
