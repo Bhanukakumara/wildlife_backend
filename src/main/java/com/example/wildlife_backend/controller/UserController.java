@@ -1,97 +1,119 @@
 package com.example.wildlife_backend.controller;
 
-import com.example.wildlife_backend.dto.user.UserCreateDto;
-import com.example.wildlife_backend.dto.user.UserGetDto;
+import com.example.wildlife_backend.dto.user.UserRegistrationDto;
+import com.example.wildlife_backend.dto.user.UserProfileDto;
+import com.example.wildlife_backend.dto.user.UserResponseDto;
+import com.example.wildlife_backend.util.UserRole;
 import com.example.wildlife_backend.service.UserService;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/user")
-@CrossOrigin
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
-@Slf4j
 public class UserController {
 
     private final UserService userService;
 
+    // Public endpoints
     @PostMapping("/register")
-    public ResponseEntity<UserGetDto> registerUser(
-            @Valid @RequestBody UserCreateDto userCreateDto,
-            HttpServletRequest request) {
-        try {
-            log.info("Attempting to register new user with email: {}", userCreateDto.getEmail());
-
-            UserGetDto createdUser = userService.createUser(userCreateDto);
-
-            return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
-
-        } catch (IllegalArgumentException e) {
-            log.warn("Failed to register user - validation error: {}", e.getMessage());
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            log.error("Unexpected error during user registration", e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<UserResponseDto> registerUser(@RequestBody UserRegistrationDto registrationDto) {
+        UserResponseDto createdUser = userService.registerUser(registrationDto);
+        return ResponseEntity.ok(createdUser);
     }
 
-    @GetMapping("/get-by-id{userId}")
-    public ResponseEntity<UserGetDto> getUserById(
-            @PathVariable Long userId) {
-
-        Optional<UserGetDto> user = userService.getUserById(userId);
-        return new ResponseEntity<>(user.get(), HttpStatus.OK);
+    @GetMapping("/check-email")
+    public ResponseEntity<Boolean> checkEmailAvailability(@RequestParam String email) {
+        boolean available = userService.isEmailAvailable(email);
+        return ResponseEntity.ok(available);
     }
 
-    @GetMapping("/get-by-email/{email}")
-    public ResponseEntity<UserGetDto> getUserByEmail( @PathVariable @Email String email) {
-
-        Optional<UserGetDto> user = userService.getUserByEmail(email);
-
-        return user.map(userGetDto -> new ResponseEntity<>(userGetDto, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    @GetMapping("/check-username")
+    public ResponseEntity<Boolean> checkUsernameAvailability(@RequestParam String username) {
+        boolean available = userService.isUsernameAvailable(username);
+        return ResponseEntity.ok(available);
     }
 
-    @GetMapping("/get-all")
-    public ResponseEntity<List<UserGetDto>> getAllUsers(){
-        List<UserGetDto> allUsers = userService.getAllUsers();
-        if (allUsers.isEmpty()){
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(allUsers, HttpStatus.OK);
+    // Admin only endpoints
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping
+    public ResponseEntity<List<UserResponseDto>> getAllUsers() {
+        List<UserResponseDto> users = userService.getAllUserResponses();
+        return ResponseEntity.ok(users);
     }
 
-    @PutMapping("/update/{userId}")
-    public ResponseEntity<UserGetDto> updateUser(
-            @PathVariable Long userId,
-            @Valid @RequestBody UserCreateDto userCreateDto) {
-
-        Optional<UserGetDto> updatedUser = userService.updateUser(userId, userCreateDto);
-
-        return updatedUser.map(userDto -> {
-                    log.info("User updated by admin - ID: {}", userId);
-                    return new ResponseEntity<>(userDto, HttpStatus.OK);
-                })
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/active")
+    public ResponseEntity<List<UserResponseDto>> getActiveUsers() {
+        List<UserResponseDto> users = userService.getActiveUserResponses();
+        return ResponseEntity.ok(users);
     }
 
-    @DeleteMapping("/delete/{userId}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
-        boolean deleted = userService.deleteUser(userId);
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/role/{role}")
+    public ResponseEntity<List<UserResponseDto>> getUsersByRole(@PathVariable UserRole role) {
+        List<UserResponseDto> users = userService.getUserResponsesByRole(role);
+        return ResponseEntity.ok(users);
+    }
 
-        if (deleted) {
-            log.warn("User permanently deleted by admin - ID: {}", userId);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/{id}/suspend")
+    public ResponseEntity<Void> suspendUser(@PathVariable Long id, @RequestParam String reason) {
+        userService.suspendUser(id, reason);
+        return ResponseEntity.ok().build();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/{id}/activate")
+    public ResponseEntity<Void> activateUser(@PathVariable Long id) {
+        userService.activateUser(id);
+        return ResponseEntity.ok().build();
+    }
+
+    // User profile endpoints (authenticated users)
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponseDto> getUserById(@PathVariable Long id) {
+        Optional<UserResponseDto> user = userService.getUserResponseById(id);
+        return user.map(ResponseEntity::ok)
+                  .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponseDto> updateUser(@PathVariable Long id, @RequestBody UserProfileDto profileDto) {
+        UserResponseDto updatedUser = userService.updateProfile(id, profileDto);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    @PutMapping("/{id}/profile")
+    public ResponseEntity<UserResponseDto> updateProfile(@PathVariable Long id, @RequestBody UserProfileDto profileDto) {
+        UserResponseDto updatedUser = userService.updateProfile(id, profileDto);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    @PostMapping("/{id}/change-password")
+    public ResponseEntity<Void> changePassword(@PathVariable Long id,
+                                             @RequestParam String oldPassword,
+                                             @RequestParam String newPassword) {
+        userService.changePassword(id, oldPassword, newPassword);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.ok().build();
+    }
+
+    // Statistics endpoints
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/stats/count")
+    public ResponseEntity<Long> getTotalUserCount() {
+        long count = userService.getTotalUserCount();
+        return ResponseEntity.ok(count);
     }
 }

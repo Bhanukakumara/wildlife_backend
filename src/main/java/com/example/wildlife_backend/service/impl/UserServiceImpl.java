@@ -1,339 +1,241 @@
 package com.example.wildlife_backend.service.impl;
 
-import com.example.wildlife_backend.dto.user.UserCreateDto;
-import com.example.wildlife_backend.dto.user.UserGetDto;
-import com.example.wildlife_backend.dto.user.UserSearchDto;
-import com.example.wildlife_backend.dto.user.UserUpdatePasswordDto;
+import com.example.wildlife_backend.dto.user.UserRegistrationDto;
+import com.example.wildlife_backend.dto.user.UserProfileDto;
+import com.example.wildlife_backend.dto.user.UserResponseDto;
 import com.example.wildlife_backend.entity.User;
-import com.example.wildlife_backend.exception.ResourceNotFoundException;
-import com.example.wildlife_backend.exception.DuplicateResourceException;
+import com.example.wildlife_backend.util.UserRole;
 import com.example.wildlife_backend.repository.UserRepository;
 import com.example.wildlife_backend.service.UserService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.util.*;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    @Transactional
-    public UserGetDto createUser(UserCreateDto userCreateDto) {
-        validateUserCreation(userCreateDto);
+    public User createUser(User user) {
+        if (!isEmailAvailable(user.getEmail())) {
+            throw new RuntimeException("Email already exists");
+        }
+        if (!isUsernameAvailable(user.getUsername())) {
+            throw new RuntimeException("Username already exists");
+        }
 
-        User user = convertCreateDtoToUser(userCreateDto);
-        User savedUser = userRepository.save(user);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setEmailVerified(false);
+        user.setPhoneVerified(false);
+        user.setIsActive(true);
+        user.setIsSuspended(false);
 
-        log.info("Created new user with ID: {}", savedUser.getId());
-        return convertUserToGetDto(savedUser);
+        return userRepository.save(user);
+    }
+
+    @Override
+    public User updateUser(Long id, User user) {
+        User existingUser = userRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Update allowed fields
+        if (user.getFullName() != null) existingUser.setFullName(user.getFullName());
+        if (user.getBio() != null) existingUser.setBio(user.getBio());
+        if (user.getProfileImageUrl() != null) existingUser.setProfileImageUrl(user.getProfileImageUrl());
+        if (user.getPhoneNumber() != null) existingUser.setPhoneNumber(user.getPhoneNumber());
+        if (user.getWebsite() != null) existingUser.setWebsite(user.getWebsite());
+        if (user.getLocation() != null) existingUser.setLocation(user.getLocation());
+
+        return userRepository.save(existingUser);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<UserGetDto> getUserById(Long userId) {
-        return Optional.ofNullable(userRepository.findById(userId)
-                .map(this::convertUserToGetDto)
-                .orElseThrow(() -> new ResourceNotFoundException("found with id: " + userId)));
+    public Optional<User> getUserById(Long id) {
+        return userRepository.findById(id);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<UserGetDto> getUserByEmail(String email) {
-        return Optional.ofNullable(userRepository.findByEmail(email)
-                .map(this::convertUserToGetDto)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email)));
+    public Optional<User> getUserByEmail(String email) {
+        return userRepository.findByEmail(email);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserGetDto> getAllUsers() {
-        List<User> all = userRepository.findAll();
-        return all.stream().map(this::convertUserToGetDto).collect(Collectors.toList());
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public Page<UserGetDto> getAllUsers(Pageable pageable) {
-        Page<User> users = userRepository.findAll(pageable);
-        return users.map(this::convertUserToGetDto);
+    public Optional<User> getUserByUsername(String username) {
+        return userRepository.findByUsername(username);
     }
 
     @Override
-    @Transactional
-    public Optional<UserGetDto> updateUser(Long userId, UserCreateDto userDetails) {
+    @Transactional(readOnly = true)
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    @Override
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
+    }
+
+    @Override
+    public UserResponseDto registerUser(UserRegistrationDto registrationDto) {
+        User user = new User();
+        user.setEmail(registrationDto.getEmail());
+        user.setUsername(registrationDto.getUsername());
+        user.setPassword(registrationDto.getPassword());
+        user.setFullName(registrationDto.getFullName());
+        user.setFirstName(registrationDto.getFirstName());
+        user.setLastName(registrationDto.getLastName());
+        user.setBio(registrationDto.getBio());
+        user.setProfileImageUrl(registrationDto.getProfileImageUrl());
+        user.setPhoneNumber(registrationDto.getPhoneNumber());
+        user.setWebsite(registrationDto.getWebsite());
+        user.setLocation(registrationDto.getLocation());
+
+        User savedUser = createUser(user);
+        return convertToUserResponseDto(savedUser);
+    }
+
+    @Override
+    public UserResponseDto updateProfile(Long userId, UserProfileDto profileDto) {
         User existingUser = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-        validateUserUpdate(existingUser, userDetails);
-        updateUserFromDto(existingUser, userDetails);
-        User updatedUser = userRepository.save(existingUser);
-        log.info("Updated user with ID: {}", userId);
-        return Optional.of(convertUserToGetDto(updatedUser));
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public Page<UserGetDto> searchUsers(UserSearchDto searchDto, Pageable pageable) {
-        Page<User> users = userRepository.searchUsers(
-            searchDto.getEmail(),
-            searchDto.getFirstName(),
-            searchDto.getLastName(),
-            searchDto.getPhoneNumber(),
-            searchDto.getDateOfBirth(),
-            searchDto.getGender(),
-            searchDto.getRole(),
-            searchDto.getAccountStatus(),
-            pageable
-        );
-        return users.map(this::convertUserToGetDto);
-    }
-    
-    @Override
-    @Transactional
-    public Optional<UserGetDto> partialUpdateUser(Long userId, UserCreateDto userDetails) {
-        User existingUser = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-        
-        // Only update fields that are provided in the DTO
-        if (userDetails.getEmail() != null && !userDetails.getEmail().isEmpty()) {
-            validateUserUpdate(existingUser, userDetails);
-            existingUser.setEmail(userDetails.getEmail());
-        }
-        
-        if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
-            existingUser.setPassword(passwordEncoder.encode(userDetails.getPassword()));
-        }
-        
-        if (userDetails.getFirstName() != null) {
-            existingUser.setFirstName(userDetails.getFirstName());
-        }
-        
-        if (userDetails.getMiddleName() != null) {
-            existingUser.setMiddleName(userDetails.getMiddleName());
-        }
-        
-        if (userDetails.getLastName() != null) {
-            existingUser.setLastName(userDetails.getLastName());
-        }
-        
-        if (userDetails.getDisplayName() != null) {
-            existingUser.setDisplayName(userDetails.getDisplayName());
-        }
-        
-        if (userDetails.getProfilePicture() != null) {
-            existingUser.setProfilePicture(userDetails.getProfilePicture());
-        }
-        
-        if (userDetails.getPhoneNumber() != null && !userDetails.getPhoneNumber().isEmpty()) {
-            existingUser.setPhoneNumber(userDetails.getPhoneNumber());
-        }
-        
-        if (userDetails.getDateOfBirth() != null) {
-            existingUser.setDateOfBirth(userDetails.getDateOfBirth());
-        }
-        
-        if (userDetails.getGender() != null) {
-            existingUser.setGender(userDetails.getGender());
-        }
-        
-        if (userDetails.getRole() != null) {
-            existingUser.setRole(userDetails.getRole());
-        }
-        
-        if (userDetails.getAccountStatus() != null) {
-            existingUser.setAccountStatus(userDetails.getAccountStatus());
-        }
-        
-        User updatedUser = userRepository.save(existingUser);
-        log.info("Partially updated user with ID: {}", userId);
-        return Optional.of(convertUserToGetDto(updatedUser));
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Update allowed fields
+        if (profileDto.getEmail() != null) existingUser.setEmail(profileDto.getEmail());
+        if (profileDto.getUsername() != null) existingUser.setUsername(profileDto.getUsername());
+        if (profileDto.getFullName() != null) existingUser.setFullName(profileDto.getFullName());
+        if (profileDto.getFirstName() != null) existingUser.setFirstName(profileDto.getFirstName());
+        if (profileDto.getLastName() != null) existingUser.setLastName(profileDto.getLastName());
+        if (profileDto.getBio() != null) existingUser.setBio(profileDto.getBio());
+        if (profileDto.getProfileImageUrl() != null) existingUser.setProfileImageUrl(profileDto.getProfileImageUrl());
+        if (profileDto.getPhoneNumber() != null) existingUser.setPhoneNumber(profileDto.getPhoneNumber());
+        if (profileDto.getWebsite() != null) existingUser.setWebsite(profileDto.getWebsite());
+        if (profileDto.getLocation() != null) existingUser.setLocation(profileDto.getLocation());
+
+        User savedUser = userRepository.save(existingUser);
+        return convertToUserResponseDto(savedUser);
     }
 
-
-
     @Override
-    @Transactional
-    public boolean deleteUser(Long userId) {
+    public void changePassword(Long userId, String oldPassword, String newPassword) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-        userRepository.delete(user);
-        log.info("Deleted user with ID: {}", userId);
-        return true;
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new RuntimeException("Old password is incorrect");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 
+    @Override
+    public void suspendUser(Long userId, String reason) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
 
-
-    private void validateUserCreation(UserCreateDto userCreateDto) {
-        if (userRepository.existsByEmail(userCreateDto.getEmail())) {
-            throw new DuplicateResourceException("Email already in use: " + userCreateDto.getEmail());
-        }
-
-        if (userRepository.existsByPhoneNumber(userCreateDto.getPhoneNumber())) {
-            throw new DuplicateResourceException("Phone number already in use: " + userCreateDto.getPhoneNumber());
-        }
-        
-        // Validate displayName
-        if (userCreateDto.getDisplayName() == null || userCreateDto.getDisplayName().trim().isEmpty()) {
-            // Generate display name from first name and last name if not provided
-            String firstName = userCreateDto.getFirstName() != null ? userCreateDto.getFirstName().trim() : "";
-            String lastName = userCreateDto.getLastName() != null ? userCreateDto.getLastName().trim() : "";
-            userCreateDto.setDisplayName(firstName + " " + lastName);
-        }
-    }
-   
-   @Override
-   @Transactional
-   public boolean updatePassword(Long userId, UserUpdatePasswordDto passwordDto) {
-       User user = userRepository.findById(userId)
-               .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-       
-       // Check if the old password is correct
-       if (!passwordEncoder.matches(passwordDto.getOldPassword(), user.getPassword())) {
-           throw new IllegalArgumentException("Old password is incorrect");
-       }
-       
-       // Update the password
-       user.setPassword(passwordEncoder.encode(passwordDto.getNewPassword()));
-       userRepository.save(user);
-       log.info("Updated password for user with ID: {}", userId);
-       return true;
-   }
-   
-   @Override
-   @Transactional
-   public Optional<UserGetDto> toggleUserStatus(Long userId) {
-       User user = userRepository.findById(userId)
-               .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-       
-       // Toggle the account status
-       if (user.getAccountStatus() == com.example.wildlife_backend.util.AccountStatus.ACTIVE) {
-           user.setAccountStatus(com.example.wildlife_backend.util.AccountStatus.SUSPENDED);
-       } else {
-           user.setAccountStatus(com.example.wildlife_backend.util.AccountStatus.ACTIVE);
-       }
-       User updatedUser = userRepository.save(user);
-       log.info("Toggled account status for user with ID: {}", userId);
-       return Optional.of(convertUserToGetDto(updatedUser));
-   }
-   
-   @Override
-   @Transactional
-   public boolean requestPasswordReset(String email) {
-       userRepository.findByEmail(email)
-               .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
-       
-       // In a real application, you would send an email with a reset token
-       // For now, we'll just log that the request was made
-       log.info("Password reset requested for user with email: {}", email);
-       return true;
-   }
-   
-   
-   @Override
-   @Transactional
-   public Optional<UserGetDto> uploadProfilePicture(Long userId, MultipartFile file) {
-       User user = userRepository.findById(userId)
-               .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
-       
-       // For now, we'll just save the original filename as the profile picture
-       // In a real application, you would save the file to a storage service and save the URL
-       user.setProfilePicture(file.getOriginalFilename());
-       User updatedUser = userRepository.save(user);
-       log.info("Uploaded profile picture for user with ID: {}", userId);
-       return Optional.of(convertUserToGetDto(updatedUser));
-   }
-   
-   @Override
-   @Transactional
-   public boolean resetPassword(String token, UserUpdatePasswordDto passwordDto) {
-       // In a real application, you would validate the token and find the user associated with it
-       // For now, we'll just log that the reset was requested
-       log.info("Password reset requested with token: {}", token);
-       return true;
-   }
-   
-
-    private void validateUserUpdate(User existingUser, UserCreateDto userDetails) {
-        if (!existingUser.getEmail().equals(userDetails.getEmail()) &&
-                userRepository.existsByEmail(userDetails.getEmail())) {
-            throw new DuplicateResourceException("Email already in use: " + userDetails.getEmail());
-        }
-
-        if (!existingUser.getPhoneNumber().equals(userDetails.getPhoneNumber()) &&
-                userRepository.existsByPhoneNumber(userDetails.getPhoneNumber())) {
-            throw new DuplicateResourceException("Phone number already in use: " + userDetails.getPhoneNumber());
-        }
-        
-        // Validate displayName
-        if (userDetails.getDisplayName() == null || userDetails.getDisplayName().trim().isEmpty()) {
-            // Generate display name from first name and last name if not provided
-            String firstName = userDetails.getFirstName() != null ? userDetails.getFirstName().trim() : "";
-            String lastName = userDetails.getLastName() != null ? userDetails.getLastName().trim() : "";
-            userDetails.setDisplayName(firstName + " " + lastName);
-        }
+        user.setIsSuspended(true);
+        user.setSuspensionReason(reason);
+        userRepository.save(user);
     }
 
-    private User convertCreateDtoToUser(UserCreateDto userCreateDto) {
-        return User.builder()
-                .email(userCreateDto.getEmail())
-                .firstName(userCreateDto.getFirstName())
-                .middleName(userCreateDto.getMiddleName())
-                .lastName(userCreateDto.getLastName())
-                .displayName(userCreateDto.getDisplayName())
-                .profilePicture(userCreateDto.getProfilePicture())
-                .password(passwordEncoder.encode(userCreateDto.getPassword()))
-                .phoneNumber(userCreateDto.getPhoneNumber())
-                .dateOfBirth(userCreateDto.getDateOfBirth())
-                .gender(userCreateDto.getGender())
-                .role(userCreateDto.getRole())
-                .accountStatus(userCreateDto.getAccountStatus())
-                .build();
+    @Override
+    public void activateUser(Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setIsSuspended(false);
+        user.setSuspensionReason(null);
+        userRepository.save(user);
     }
 
-    private UserGetDto convertUserToGetDto(User user) {
-        return UserGetDto.builder()
-                .id(user.getId()) // Corrected field name
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .middleName(user.getMiddleName())
-                .lastName(user.getLastName())
-                .displayName(user.getDisplayName())
-                .profilePicture(user.getProfilePicture())
-                .password(user.getPassword())
-                .phoneNumber(user.getPhoneNumber())
-                .dateOfBirth(user.getDateOfBirth())
-                .gender(user.getGender())
-                .role(user.getRole())
-                .accountStatus(user.getAccountStatus())
-                .build();
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isEmailAvailable(String email) {
+        return !userRepository.existsByEmail(email);
     }
 
-    private void updateUserFromDto(User user, UserCreateDto dto) {
-        user.setEmail(dto.getEmail());
-        if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        }
-        user.setFirstName(dto.getFirstName());
-        user.setMiddleName(dto.getMiddleName());
-        user.setLastName(dto.getLastName());
-        user.setDisplayName(dto.getDisplayName());
-        user.setProfilePicture(dto.getProfilePicture());
-        user.setPhoneNumber(dto.getPhoneNumber());
-        user.setDateOfBirth(dto.getDateOfBirth());
-        user.setGender(dto.getGender());
-        user.setRole(dto.getRole());
-        user.setAccountStatus(dto.getAccountStatus());
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isUsernameAvailable(String username) {
+        return !userRepository.existsByUsername(username);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long getTotalUserCount() {
+        return userRepository.count();
+    }
+
+    @Override
+    public void updateLastLogin(Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setLastLoginAt(LocalDateTime.now());
+        userRepository.save(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<UserResponseDto> getUserResponseById(Long id) {
+        return getUserById(id).map(this::convertToUserResponseDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserResponseDto> getAllUserResponses() {
+        return getAllUsers().stream()
+            .map(this::convertToUserResponseDto)
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserResponseDto> getUserResponsesByRole(UserRole role) {
+        return null;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserResponseDto> getActiveUserResponses() {
+        return null;
+    }
+
+    private UserResponseDto convertToUserResponseDto(User user) {
+        UserResponseDto dto = new UserResponseDto();
+        dto.setId(user.getId());
+        dto.setEmail(user.getEmail());
+        dto.setUsername(user.getUsername());
+        dto.setFullName(user.getFullName());
+        dto.setFirstName(user.getFirstName());
+        dto.setLastName(user.getLastName());
+        dto.setBio(user.getBio());
+        dto.setProfileImageUrl(user.getProfileImageUrl());
+        dto.setPhoneNumber(user.getPhoneNumber());
+        dto.setWebsite(user.getWebsite());
+        dto.setLocation(user.getLocation());
+        dto.setRoles(user.getRoles());
+        dto.setEmailVerified(user.getEmailVerified());
+        dto.setPhoneVerified(user.getPhoneVerified());
+        dto.setLastLoginAt(user.getLastLoginAt());
+        dto.setCreatedAt(user.getCreatedAt());
+        dto.setUpdatedAt(user.getUpdatedAt());
+        dto.setIsActive(user.getIsActive());
+        dto.setTotalEarnings(user.getTotalEarnings());
+        dto.setTotalSales(user.getTotalSales());
+        return dto;
     }
 }

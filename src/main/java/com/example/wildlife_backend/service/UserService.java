@@ -1,34 +1,55 @@
 package com.example.wildlife_backend.service;
 
-import com.example.wildlife_backend.dto.user.UserCreateDto;
-import com.example.wildlife_backend.dto.user.UserGetDto;
-import com.example.wildlife_backend.dto.user.UserSearchDto;
-import com.example.wildlife_backend.dto.user.UserUpdatePasswordDto;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.web.multipart.MultipartFile;
+import com.example.wildlife_backend.dto.user.UserRegistrationDto;
+import com.example.wildlife_backend.dto.user.UserProfileDto;
+import com.example.wildlife_backend.dto.user.UserResponseDto;
+import com.example.wildlife_backend.entity.User;
+import com.example.wildlife_backend.util.UserRole;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface UserService {
 
-    // Core CRUD Operations
-    UserGetDto createUser(UserCreateDto userCreateDto);
-    Optional<UserGetDto> getUserById(Long userId);
-    Optional<UserGetDto> getUserByEmail(String email);
-    List<UserGetDto> getAllUsers();
-    Page<UserGetDto> getAllUsers(Pageable pageable);
-    Optional<UserGetDto> updateUser(Long userId, UserCreateDto userDetails);
-    boolean deleteUser(Long userId);
-    
-    // Additional operations
-    Page<UserGetDto> searchUsers(UserSearchDto searchDto, Pageable pageable);
-    Optional<UserGetDto> partialUpdateUser(Long userId, UserCreateDto userDetails);
-    boolean updatePassword(Long userId, UserUpdatePasswordDto passwordDto);
-    Optional<UserGetDto> uploadProfilePicture(Long userId, MultipartFile file);
-    Optional<UserGetDto> toggleUserStatus(Long userId);
-    boolean requestPasswordReset(String email);
-    boolean resetPassword(String token, UserUpdatePasswordDto passwordDto);
+    // Basic CRUD operations
+    User createUser(User user);
 
+    User updateUser(Long id, User user);
+
+    Optional<User> getUserById(Long id);
+
+    Optional<User> getUserByEmail(String email);
+
+    Optional<User> getUserByUsername(String username);
+
+    List<User> getAllUsers();
+
+    void deleteUser(Long id);
+
+    // Business logic methods
+    UserResponseDto registerUser(UserRegistrationDto registrationDto);
+
+    UserResponseDto updateProfile(Long userId, UserProfileDto profileDto);
+
+    void changePassword(Long userId, String oldPassword, String newPassword);
+
+    void suspendUser(Long userId, String reason);
+
+    void activateUser(Long userId);
+
+    boolean isEmailAvailable(String email);
+
+    boolean isUsernameAvailable(String username);
+
+    Optional<UserResponseDto> getUserResponseById(Long id);
+
+    List<UserResponseDto> getAllUserResponses();
+
+    List<UserResponseDto> getUserResponsesByRole(UserRole role);
+
+    List<UserResponseDto> getActiveUserResponses();
+
+    long getTotalUserCount();
+
+    void updateLastLogin(Long userId);
 }

@@ -1,22 +1,22 @@
 spring:
   application:
-    name: wildlife_backend
+    name: ${SPRING_APPLICATION_NAME}
 
   datasource:
-    url: jdbc:mysql://localhost:3306/wildlife?createDatabaseIfNotExist=true
-    username: root
-    password: 1234
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
 
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
+    show-sql: ${SPRING_JPA_SHOW_SQL:true}
 
   jwt:
-    secret: 0e3d419499e931ca750c178a45750227174f87934fdfa205625cdac1948855b3
-    tokenExpiration: 86400
+    secret: ${SPRING_JWT_SECRET}
+    tokenExpiration: ${SPRING_JWT_TOKENEXPIRATION}
 
 cloudinary:
-  cloud-name: dadtqnsr4
-  api-key: 661823342174176
-  api-secret: 9j1BFOtJk9lIkEKmYguSq_6_ON8
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}

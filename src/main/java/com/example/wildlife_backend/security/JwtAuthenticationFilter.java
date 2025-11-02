@@ -1,7 +1,7 @@
 package com.example.wildlife_backend.security;
 
-import com.example.wildlife_backend.service.JwtService;
 import com.example.wildlife_backend.util.UserRole;
+import com.example.wildlife_backend.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,6 +1,6 @@
 package com.example.wildlife_backend.service;
 
-import com.example.wildlife_backend.dto.user.UserGetDto;
+import com.example.wildlife_backend.dto.user.UserResponseDto;
 import com.example.wildlife_backend.util.UserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -17,11 +17,11 @@ public class JwtService {
     private String secret;
     @Value("${spring.jwt.tokenExpiration}")
     private Long tokenExpiration;
-    public String generateToken(UserGetDto userGetDto) {
+    public String generateToken(UserResponseDto userGetDto) {
         return Jwts.builder()
                 .subject(userGetDto.getEmail())
-                .claim("roles", userGetDto.getRole())
-                .claim("name", userGetDto.getDisplayName())
+                .claim("roles", userGetDto.getRoles())
+                .claim("name", userGetDto.getFullName())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 1000 * tokenExpiration))
                 .signWith(Keys.hmacShaKeyFor(secret.getBytes()))

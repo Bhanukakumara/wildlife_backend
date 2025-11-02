@@ -1,108 +1,128 @@
 package com.example.wildlife_backend.entity;
 
-import com.example.wildlife_backend.util.AccountStatus;
-import com.example.wildlife_backend.util.Gender;
 import com.example.wildlife_backend.util.UserRole;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
-import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.LocalDate;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
+@Data
 @Entity
-@Table(name = "users")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Table(name = "users",
+    uniqueConstraints = { 
+        @UniqueConstraint(columnNames = "email"),
+        @UniqueConstraint(columnNames = "username")
+    },
+    indexes = {
+        @Index(name = "idx_user_email", columnList = "email"),
+        @Index(name = "idx_user_username", columnList = "username"),
+        @Index(name = "idx_user_created_at", columnList = "created_at")
+    }
+)
 public class User {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "email", unique = true, nullable = false)
-    @Email(message = "Email should be valid")
-    @NotBlank(message = "Email is required")
+    @NotBlank
+    @Size(max = 50)
+    @Email
     private String email;
 
-    @Column(name = "first_name", nullable = false, length = 50)
-    @NotBlank(message = "First name is required")
-    @Size(min = 2, max = 50, message = "First name must be between 2 and 50 characters")
-    private String firstName;
+    @NotBlank
+    @Size(max = 20)
+    private String username;
 
-    @Column(name = "middle_name", length = 50)
-    @Size(max = 50, message = "Middle name cannot exceed 50 characters")
-    private String middleName;
-
-    @Column(name = "last_name", nullable = false, length = 50)
-    @NotBlank(message = "Last name is required")
-    @Size(min = 2, max = 50, message = "Last name must be between 2 and 50 characters")
-    private String lastName;
-
-    @Column(name = "display_name", length = 100, nullable = false)
-    @NotBlank(message = "Display name is required")
-    @Size(max = 100, message = "Display name cannot exceed 100 characters")
-    private String displayName;
-
-    @Column(name = "profile_picture", columnDefinition = "TEXT")
-    private String profilePicture;
-
-    @Column(name = "password", nullable = false, length = 255)
-    @NotBlank(message = "Password is required")
-    @Size(min = 8, message = "Password must be at least 8 characters")
+    @NotBlank
+    @Size(max = 120)
     private String password;
 
-    @Column(name = "phone_number", unique = true, length = 20)
-    @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Phone number should be valid")
+    @Size(max = 100)
+    private String fullName;
+
+    @Size(max = 50)
+    private String firstName;
+
+    @Size(max = 50)
+    private String lastName;
+
+    @Size(max = 500)
+    private String bio;
+
+    @Size(max = 255)
+    private String profileImageUrl;
+
+    @Size(max = 20)
     private String phoneNumber;
 
-    @Column(name = "date_of_birth")
-    @Past(message = "Date of birth must be in the past")
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate dateOfBirth;
+    @Size(max = 100)
+    private String website;
 
+    @Size(max = 100)
+    private String location;
+
+    @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
-    @Column(name = "gender", nullable = false)
-    private Gender gender;
+    private Set<UserRole> roles = new HashSet<>();
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
-    private UserRole role;
+    @Column(name = "email_verified")
+    private Boolean emailVerified = false;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "account_status", nullable = false)
-    private AccountStatus accountStatus;
+    @Column(name = "phone_verified")
+    private Boolean phoneVerified = false;
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate createdAt;
+    @Column(name = "last_login_at")
+    private LocalDateTime lastLoginAt;
 
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate updatedAt;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
-    @Column(name = "deleted_at")
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate deletedAt;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @Column(name = "is_active")
+    private Boolean isActive = true;
+
+    @Column(name = "is_suspended")
+    private Boolean isSuspended = false;
+
+    @Column(name = "suspension_reason")
+    private String suspensionReason;
+
+    @Column(name = "total_earnings", precision = 10, scale = 2)
+    private java.math.BigDecimal totalEarnings = java.math.BigDecimal.ZERO;
+
+    @Column(name = "total_sales")
+    private Integer totalSales = 0;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Cart cart;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UserAddress> userAddresses;
+    private Set<Photo> photos = new HashSet<>();
 
-    @OneToMany(mappedBy = "user")
-    private Set<UserPaymentMethod> paymentMethods = new HashSet<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Order> orders = new HashSet<>();
 
-    @OneToMany(mappedBy = "user")
-    private Set<UserReview> reviews = new HashSet<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Review> reviews = new HashSet<>();
 
-    @OneToOne(mappedBy = "user")
-    private ShoppingCart shoppingCart;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Wishlist> wishlistItems = new HashSet<>();
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

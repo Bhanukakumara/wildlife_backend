@@ -2,6 +2,7 @@ package com.example.wildlife_backend.service;
 
 import com.example.wildlife_backend.entity.User;
 import com.example.wildlife_backend.repository.UserRepository;
+
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
