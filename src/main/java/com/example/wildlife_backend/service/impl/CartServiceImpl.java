@@ -109,7 +109,9 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public Optional<CartDto> getCartByUserId(Long userId) {
-        return Optional.empty();
+        return userRepository.findById(userId)
+            .flatMap(cartRepository::findByUser)
+            .map(this::convertToCartDto);
     }
 
     private Cart getOrCreateCartEntity(Long userId) {
