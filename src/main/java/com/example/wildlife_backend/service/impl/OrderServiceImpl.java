@@ -165,6 +165,7 @@ public class OrderServiceImpl implements OrderService {
         // Set timestamps based on status
         LocalDateTime now = LocalDateTime.now();
         switch (status) {
+            case PENDING:
             case PROCESSING:
                 // Status transition timestamp if needed
                 break;
@@ -178,6 +179,9 @@ public class OrderServiceImpl implements OrderService {
                 break;
             case REFUNDED:
                 order.setRefundedAt(now);
+                break;
+            case FAILED:
+                // No timestamp change defined for failed orders yet
                 break;
         }
 
