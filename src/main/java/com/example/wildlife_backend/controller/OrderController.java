@@ -4,6 +4,7 @@ import com.example.wildlife_backend.dto.order.OrderCreateDto;
 import com.example.wildlife_backend.dto.order.OrderResponseDto;
 import com.example.wildlife_backend.dto.order.OrderUpdateDto;
 import com.example.wildlife_backend.entity.OrderItem;
+import com.example.wildlife_backend.entity.User;
 import com.example.wildlife_backend.util.OrderStatus;
 import com.example.wildlife_backend.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -33,9 +34,9 @@ public class OrderController {
 
     @GetMapping("/my-orders")
     public ResponseEntity<List<OrderResponseDto>> getMyOrders(Authentication authentication) {
-        // In a real implementation, you'd extract user ID from authentication
-        // For now, this is a placeholder - you'd need to implement proper user context
-        List<OrderResponseDto> orders = List.of(); // Placeholder
+        // Extract user ID from authentication
+        Long userId = ((User) authentication.getPrincipal()).getId();
+        List<OrderResponseDto> orders = orderService.getOrdersByUser(userId);
         return ResponseEntity.ok(orders);
     }
 

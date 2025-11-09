@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -94,6 +95,13 @@ public class PhotoController {
     public ResponseEntity<PhotoResponseDto> createPhoto(@RequestBody PhotoCreateDto photoDto) {
         PhotoResponseDto createdPhoto = photoService.createPhoto(photoDto);
         return ResponseEntity.ok(createdPhoto);
+    }
+
+    @PostMapping("/upload")
+    @PreAuthorize("hasRole('PHOTOGRAPHER')")
+    public ResponseEntity<String> uploadImage(@RequestParam("file") MultipartFile file) {
+        String imageUrl = photoService.uploadImage(file);
+        return ResponseEntity.ok(imageUrl);
     }
 
     @PutMapping("/{id}")

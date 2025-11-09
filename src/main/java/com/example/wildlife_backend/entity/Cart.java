@@ -2,17 +2,22 @@ package com.example.wildlife_backend.entity;
 
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "carts")
 public class Cart {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
@@ -60,7 +65,7 @@ public class Cart {
     private void updateTotals() {
         totalItems = items.size();
         totalAmount = items.stream()
-            .map(CartItem::getTotalPrice)
+            .map(item -> item.getUnitPrice().multiply(java.math.BigDecimal.valueOf(item.getQuantity())))
             .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
     }
 }

@@ -9,6 +9,7 @@ import com.example.wildlife_backend.util.PhotoStatus;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface PhotoService {
 
@@ -22,6 +23,9 @@ public interface PhotoService {
     List<PhotoResponseDto> getAllPhotos();
 
     void deletePhoto(Long id);
+
+    // Upload image
+    String uploadImage(MultipartFile file);
 
     // Business logic methods
     PhotoResponseDto submitPhotoForReview(PhotoCreateDto photoDto);

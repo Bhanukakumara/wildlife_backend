@@ -11,9 +11,14 @@ import com.example.wildlife_backend.repository.PhotoRepository;
 import com.example.wildlife_backend.repository.UserRepository;
 import com.example.wildlife_backend.repository.CategoryRepository;
 import com.example.wildlife_backend.service.PhotoService;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -31,6 +36,7 @@ public class PhotoServiceImpl implements PhotoService {
     private final PhotoRepository photoRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+    private final Cloudinary cloudinary;
 
     @Override
     public PhotoResponseDto createPhoto(PhotoCreateDto photoDto) {
@@ -65,18 +71,28 @@ public class PhotoServiceImpl implements PhotoService {
 
         // Set tags and categories
         if (photoDto.getTags() != null) {
-            photo.setTags(new HashSet<>(photoDto.getTags()));
+            photo.getTags().addAll(photoDto.getTags());
         }
         if (photoDto.getCategoryIds() != null) {
             Set<Category> categories = photoDto.getCategoryIds().stream()
                 .map(categoryId -> categoryRepository.findById(categoryId)
                     .orElseThrow(() -> new RuntimeException("Category not found: " + categoryId)))
                 .collect(Collectors.toSet());
-            photo.setCategories(categories);
+            photo.getCategories().addAll(categories);
         }
 
         Photo savedPhoto = createPhotoEntity(photo);
         return convertToPhotoResponseDto(savedPhoto);
+    }
+
+    @Override
+    public String uploadImage(MultipartFile file) {
+        try {
+            var uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+            return uploadResult.get("secure_url").toString();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to upload image", e);
+        }
     }
 
     @Override
@@ -111,14 +127,16 @@ public class PhotoServiceImpl implements PhotoService {
 
         // Update tags and categories
         if (photoDto.getTags() != null) {
-            existingPhoto.setTags(new HashSet<>(photoDto.getTags()));
+            existingPhoto.getTags().clear();
+            existingPhoto.getTags().addAll(photoDto.getTags());
         }
         if (photoDto.getCategoryIds() != null) {
+            existingPhoto.getCategories().clear();
             Set<Category> categories = photoDto.getCategoryIds().stream()
                 .map(categoryId -> categoryRepository.findById(categoryId)
                     .orElseThrow(() -> new RuntimeException("Category not found: " + categoryId)))
                 .collect(Collectors.toSet());
-            existingPhoto.setCategories(categories);
+            existingPhoto.getCategories().addAll(categories);
         }
 
         Photo savedPhoto = photoRepository.save(existingPhoto);

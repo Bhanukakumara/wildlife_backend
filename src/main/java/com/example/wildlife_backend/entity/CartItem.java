@@ -3,11 +3,15 @@ package com.example.wildlife_backend.entity;
 
 import com.example.wildlife_backend.util.LicenseType;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "cart_items",
     uniqueConstraints = @UniqueConstraint(columnNames = {"cart_id", "photo_id", "license_type"})
@@ -16,6 +20,7 @@ public class CartItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
